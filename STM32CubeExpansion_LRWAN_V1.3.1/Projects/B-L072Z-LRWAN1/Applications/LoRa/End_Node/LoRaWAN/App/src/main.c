@@ -91,7 +91,7 @@ void SENSOR_Read_Measuring(void);
 void SENSOR_Stop_Auto_Send(void);
 void SENSOR_Enable_Auto_Send(void);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
-uint8_t respBuf[40];
+uint8_t respBuf[50];
 uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
 uint8_t sensorResp = 0;
@@ -194,12 +194,14 @@ int main(void)
   MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 1 */
-//  HAL_Delay(1500);
-//	while (sensorResp != SENSOR_RESP_ACK) {
-//	  HAL_Delay(500);
-//	  SENSOR_Stop_Auto_Send();
-//	}
-//	SENSOR_Read_Measuring();
+  HAL_Delay(1500);
+	while (1) {
+	  HAL_UART_Receive(&huart1, respBuf, 20, 500);
+	  if (respBuf[0] == 0xA5 && respBuf[1] == 0xA5) break;
+	  PRINTF("STOP\n\r");
+	  SENSOR_Stop_Auto_Send();
+	}
+	SENSOR_Read_Measuring();
   /* USER CODE END 1 */
 
   /*Disbale Stand-by mode*/
@@ -266,21 +268,35 @@ static void LORA_HasJoined(void)
 
 static void Send( void* context )
 {
+	MX_USART1_UART_Init();
+	SENSOR_Start_Measuring();
+	HAL_UART_Receive(&huart1, respBuf, 2, 1000);
+	respBuf[2] = 0;
+	PRINTF(respBuf);
+	PRINTF("1\n\r");
   /* USER CODE BEGIN 3 */
   if ( LORA_JoinStatus () != LORA_SET)
   {
     /*Not joined, try again later*/
     LORA_Join();
+    SENSOR_Stop_Measuring();
+    HAL_UART_Receive(&huart1, respBuf, 2, 1000);
     return;
   }
+
+  PRINTF("2\n\r");
+  HAL_UART_Receive(&huart1, respBuf, 40, 6000);
   SENSOR_Read_Measuring();
 
+  sensorResp = 0;
+  PRINTF("21\n\r");
   HAL_UART_Receive(&huart1, respBuf, 2, 1000);
+  PRINTF("3\n\r");
   if (respBuf[0] == 0x40) {
 	uint8_t len = respBuf[1];
 	uint16_t calChecksum = 0;
 
-	HAL_UART_Receive(&huart1, &respBuf[2], len + 1, 500); // get cmd, data and checksum
+	HAL_UART_Receive(&huart1, &respBuf[2], len + 1, 30); // get cmd, data and checksum
 	for (int i = 0; i < len + 2; i++) { // with head, len and cmd ( +3 ) but not checksum ( -1 )
 		calChecksum += respBuf[i];
 	}
@@ -289,11 +305,12 @@ static void Send( void* context )
 		pm2_5 = ((uint16_t)respBuf[3] << 8) | respBuf[4];
 		pm10 = ((uint16_t)respBuf[5] << 8) | respBuf[6];
 		sensorResp = SENSOR_RESP_SINGLE;
-	} else {
-		sensorResp = 0;
 	}
+  } else {
+	  HAL_UART_Receive(&huart1, &respBuf[2], 40, 30);
   }
-
+  PRINTF("4\n\r");
+  SENSOR_Stop_Measuring();
   if (sensorResp == SENSOR_RESP_SINGLE) {
 	  AppData.Buff[0] = 32;
 	  AppData.Buff[1] = respBuf[4];
@@ -303,14 +320,19 @@ static void Send( void* context )
   } else {
 	  AppData.Buff[0] = 32;
 	  AppData.Buff[1] = 191;
+	  for (int i = 0; i < 42; i++)
+		  PRINTF("%c", respBuf[i]);
+	  PRINTF("55\n\r");
   }
   //set size and port
 	AppData.BuffSize = 2;
 	AppData.Port = LORAWAN_APP_PORT;
 
+	PRINTF("5\n\r");
 	//Send to LoRaWAN
 	LORA_send( &AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE);
   /* USER CODE END 3 */
+	PRINTF("6\n\r");
 }
 
 
@@ -534,7 +556,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 static void MX_USART1_UART_Init(void)
 {
-
 	__HAL_RCC_USART1_CLK_ENABLE();
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
