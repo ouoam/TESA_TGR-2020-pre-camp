@@ -191,13 +191,15 @@ int main(void)
 
   /* Configure the hardware*/
   HW_Init();
-  MX_USART1_UART_Init();
 
   /* USER CODE BEGIN 1 */
-  HAL_Delay(1500);
+  PRINTF("WAIT\n\r");
+  HAL_Delay(2000);
+  MX_USART1_UART_Init();
 	while (1) {
-	  HAL_UART_Receive(&huart1, respBuf, 20, 500);
+	  HAL_UART_Receive(&huart1, respBuf, 40, 500);
 	  if (respBuf[0] == 0xA5 && respBuf[1] == 0xA5) break;
+	  for(int i = 0; i < 40; i++) PRINTF("%c", respBuf[i]);
 	  PRINTF("STOP\n\r");
 	  SENSOR_Stop_Auto_Send();
 	}
@@ -285,7 +287,7 @@ static void Send( void* context )
   }
 
   PRINTF("2\n\r");
-  HAL_UART_Receive(&huart1, respBuf, 40, 6000);
+  HAL_UART_Receive(&huart1, respBuf, 40, 10000);
   SENSOR_Read_Measuring();
 
   sensorResp = 0;
