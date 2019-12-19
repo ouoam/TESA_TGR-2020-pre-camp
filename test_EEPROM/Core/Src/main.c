@@ -63,7 +63,31 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void writeToEEPROM (uint32_t address, uint32_t value)
+{
+	HAL_StatusTypeDef flash_ok;
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Unlock();
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Erase(address);
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, address, value);
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Lock();
+	}
+}
 
+uint32_t readFromEEPROM (uint32_t address)
+{
+	return (*( uint32_t *)address);
+}
 /* USER CODE END 0 */
 
 /**
@@ -106,6 +130,21 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  uint8_t buff[5];
+	  if (HAL_UART_Receive(&huart2, buff, 1, 500) == HAL_OK) {
+		  if (buff[0] == 'w') {
+			  if (HAL_UART_Receive(&huart2, &buff[1], 4, 50) == HAL_OK) {
+				  HAL_UART_Transmit(&huart2, (uint8_t*)"Write", 5, 500);
+				  writeToEEPROM(0x08080000, (buff[4] << 24) | (buff[3] << 16) | (buff[2] << 8) | buff[1]);
+			  }
+		  } else if (buff[0] == 'r') {
+			  HAL_UART_Transmit(&huart2, (uint8_t*)"Read", 4, 500);
+			  uint32_t read = readFromEEPROM(0x08080000);
+			  HAL_UART_Transmit(&huart2, (uint8_t*)&read, 4, 500);
+		  } else {
+			  HAL_UART_Transmit(&huart2, (uint8_t*)"Error", 5, 500);
+		  }
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
