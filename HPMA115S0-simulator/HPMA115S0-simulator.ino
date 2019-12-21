@@ -12,6 +12,8 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   randomSeed(analogRead(0));
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, enableMeasurement);
   delay(1700);
 }
 
@@ -56,9 +58,11 @@ void loop() {
             nextAutoSend = millis() + 1000;
           }
           enableMeasurement = true;
+          digitalWrite(LED_BUILTIN, enableMeasurement);
           isSuccess = true;
         } else if (buff[2] == 0x02) {
           enableMeasurement = false;
+          digitalWrite(LED_BUILTIN, enableMeasurement);
           isSuccess = true;
         } else if (buff[2] == 0x04) {
           uint8_t data2send[8];
