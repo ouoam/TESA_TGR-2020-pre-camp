@@ -90,7 +90,6 @@ void SENSOR_Stop_Measuring(void);
 void SENSOR_Read_Measuring(void);
 void SENSOR_Stop_Auto_Send(void);
 void SENSOR_Enable_Auto_Send(void);
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 uint8_t respBuf[50];
 uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
@@ -149,20 +148,9 @@ static LoRaMainCallback_t LoRaMainCallbacks = { LORA_GetBatteryLevel,
                                               };
 LoraFlagStatus LoraMacProcessRequest = LORA_RESET;
 LoraFlagStatus AppProcessRequest = LORA_RESET;
-/*!
- * Specifies the state of the application LED
- */
-static uint8_t AppLedStateOn = RESET;
 
 static TimerEvent_t TxTimer;
 
-#ifdef USE_B_L072Z_LRWAN1
-/*!
- * Timer to handle the application Tx Led to toggle
- */
-static TimerEvent_t TxLedTimer;
-static void OnTimerLedEvent(void *context);
-#endif
 /* !
  *Initialises the Lora Parameters
  */
@@ -218,7 +206,6 @@ int main(void)
   LORA_Join();
 
   LoraStartTx(TX_ON_TIMER) ;
-  PRINTF("1234556\n\r");
   while (1)
   {
     if (AppProcessRequest == LORA_SET)
@@ -274,8 +261,6 @@ static void Send( void* context )
 	SENSOR_Start_Measuring();
 	HAL_UART_Receive(&huart1, respBuf, 2, 1000);
 	respBuf[2] = 0;
-	PRINTF(respBuf);
-	PRINTF("1\n\r");
   /* USER CODE BEGIN 3 */
   if ( LORA_JoinStatus () != LORA_SET)
   {
@@ -286,14 +271,11 @@ static void Send( void* context )
     return;
   }
 
-  PRINTF("2\n\r");
   HAL_UART_Receive(&huart1, respBuf, 40, 10000);
   SENSOR_Read_Measuring();
 
   sensorResp = 0;
-  PRINTF("21\n\r");
   HAL_UART_Receive(&huart1, respBuf, 2, 1000);
-  PRINTF("3\n\r");
   if (respBuf[0] == 0x40) {
 	uint8_t len = respBuf[1];
 	uint16_t calChecksum = 0;
@@ -311,7 +293,6 @@ static void Send( void* context )
   } else {
 	  HAL_UART_Receive(&huart1, &respBuf[2], 40, 30);
   }
-  PRINTF("4\n\r");
   SENSOR_Stop_Measuring();
   if (sensorResp == SENSOR_RESP_SINGLE) {
 	  AppData.Buff[0] = 32;
@@ -322,19 +303,14 @@ static void Send( void* context )
   } else {
 	  AppData.Buff[0] = 32;
 	  AppData.Buff[1] = 191;
-	  for (int i = 0; i < 42; i++)
-		  PRINTF("%c", respBuf[i]);
-	  PRINTF("55\n\r");
   }
   //set size and port
 	AppData.BuffSize = 2;
 	AppData.Port = LORAWAN_APP_PORT;
 
-	PRINTF("5\n\r");
 	//Send to LoRaWAN
 	LORA_send( &AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE);
   /* USER CODE END 3 */
-	PRINTF("6\n\r");
 }
 
 
@@ -403,35 +379,8 @@ static void LORA_TxNeeded(void)
   */
 uint8_t LORA_GetBatteryLevel(void)
 {
-  uint16_t batteryLevelmV;
-  uint8_t batteryLevel = 0;
-
-  batteryLevelmV = HW_GetBatteryLevel();
-
-
-  /* Convert batterey level from mV to linea scale: 1 (very low) to 254 (fully charged) */
-  if (batteryLevelmV > VDD_BAT)
-  {
-    batteryLevel = LORAWAN_MAX_BAT;
-  }
-  else if (batteryLevelmV < VDD_MIN)
-  {
-    batteryLevel = 0;
-  }
-  else
-  {
-    batteryLevel = (((uint32_t)(batteryLevelmV - VDD_MIN) * LORAWAN_MAX_BAT) / (VDD_BAT - VDD_MIN));
-  }
-
-  return batteryLevel;
+  return 254;
 }
-
-#ifdef USE_B_L072Z_LRWAN1
-static void OnTimerLedEvent(void *context)
-{
-  LED_Off(LED_RED1) ;
-}
-#endif
 
 
 void SENSOR_Start_Measuring() {
@@ -457,92 +406,6 @@ void SENSOR_Stop_Auto_Send() {
 void SENSOR_Enable_Auto_Send() {
 	uint8_t buff[] = {0x68, 0x01, 0x40, 0x57};
 	HAL_UART_Transmit(&huart1, buff, 4, 500);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	if (huart == &huart1) {
-#ifdef EN_SENSOR_DEBUG
-		char printBuf[60];
-		sprintf(printBuf, "SENSOR : ERROR");
-#endif
-		if (respBuf[0] == 0x00) {
-			respBuf[0] = respBuf[1];
-			HAL_UART_Receive(&huart1, &respBuf[1], 1, 4);
-		}
-		if (respBuf[0] == 0x40) {
-#ifdef EN_SENSOR_DEBUG
-			sprintf(printBuf, "SENSOR : ERROR single read");
-#endif
-			uint8_t len = respBuf[1];
-			uint16_t calChecksum = 0;
-
-			HAL_UART_Receive(&huart1, &respBuf[2], len + 1, 500); // get cmd, data and checksum
-			for (int i = 0; i < len + 2; i++) { // with head, len and cmd ( +3 ) but not checksum ( -1 )
-				calChecksum += respBuf[i];
-			}
-			calChecksum = (65536 - calChecksum) & 255;
-			if (calChecksum == respBuf[2 + len]) {
-				pm2_5 = ((uint16_t)respBuf[3] << 8) | respBuf[4];
-				pm10 = ((uint16_t)respBuf[5] << 8) | respBuf[6];
-#ifdef EN_SENSOR_DEBUG
-				sprintf(printBuf, "SENSOR :+PM2.5 : %d PM10 : %d", pm2_5, pm10);
-#endif
-				sensorResp = SENSOR_RESP_SINGLE;
-			}
-		}
-		else if (respBuf[0] == 0x42 && respBuf[1] == 0x4d) {
-#ifdef EN_SENSOR_DEBUG
-			sprintf(printBuf, "SENSOR : ERROR continute read");
-#endif
-			// Auto send
-			uint8_t len;
-			uint16_t calChecksum = 0;
-
-			HAL_UART_Receive(&huart1, &respBuf[2], 2, 500); // get len
-
-			len = ((uint16_t)respBuf[2] << 8) | respBuf[3];
-
-			HAL_UART_Receive(&huart1, &respBuf[4], len, 500); //get data and checksum
-			for (int i = 0; i < len + 2; i++) { // with head and len ( +4 ) but not checksum ( -2 )
-				calChecksum += respBuf[i];
-			}
-			if (calChecksum == (((uint16_t)respBuf[2 + len] << 8) | respBuf[2 + len + 1])) {
-				uint16_t pm2_5_temp = ((uint16_t)respBuf[6] << 8) | respBuf[7];
-				uint16_t pm10_temp = ((uint16_t)respBuf[8] << 8) | respBuf[9];
-				if (!(pm2_5_temp == 0 && pm10_temp == 0 && sensorResp == 0)) {
-#ifdef EN_SENSOR_DEBUG
-					sprintf(printBuf, "SENSOR :-PM2.5 : %d PM10 : %d", pm2_5, pm10);
-#endif
-					sensorResp = SENSOR_RESP_AUTO;
-				}
-#ifdef EN_SENSOR_DEBUG
-				else
-				{
-					sprintf(printBuf, "SENSOR : Init value");
-				}
-#endif
-			}
-		}
-
-		else if (respBuf[0] == 0xA5 && respBuf[1] == 0xA5) {
-			// ACK
-#ifdef EN_SENSOR_DEBUG
-			sprintf(printBuf, "SENSOR : OK");
-#endif
-			sensorResp = SENSOR_RESP_ACK;
-		}
-		else if (respBuf[0] == 0x96 && respBuf[1] == 0x96) {
-			// NAK
-#ifdef EN_SENSOR_DEBUG
-			sprintf(printBuf, "SENSOR : NAK");
-#endif
-			sensorResp = SENSOR_RESP_NAK;
-		}
-#ifdef EN_SENSOR_DEBUG
-		HAL_UART_Transmit(&huart2, (uint8_t*)printBuf, strlen(printBuf), 500);
-#endif
-		HAL_UART_Receive_IT(&huart1, respBuf, 2);
-	}
 }
 
 /**
