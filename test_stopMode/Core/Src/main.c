@@ -511,6 +511,8 @@ static uint32_t GetLSIFrequency(void)
 	MX_TIM21_Init();
 	HAL_TIM_IC_Init(&htim21);
 
+	uwCaptureNumber = 0;
+
   /* Start the TIM Input Capture measurement in interrupt mode */
   if(HAL_TIM_IC_Start_IT(&htim21, TIM_CHANNEL_1) != HAL_OK)
   {
@@ -528,6 +530,19 @@ static uint32_t GetLSIFrequency(void)
   /* Deinitialize the TIM21 peripheral registers to their default reset values */
   HAL_TIM_IC_DeInit(&htim21);
 
+  if ( tmpCC4[0] > tmpCC4[1] )
+  {
+	/* Compute the period length */
+	uwPeriodValue = 0xFFFFFFFF - tmpCC4[0] + tmpCC4[1] + 1;
+  }
+  else
+  {
+	/* Compute the period length */
+	uwPeriodValue = tmpCC4[1] - tmpCC4[0];
+  }
+  /* Frequency computation */
+  uwLsiFreq = (uint32_t) SystemCoreClock / uwPeriodValue;
+
   return uwLsiFreq;
 }
 
@@ -540,22 +555,6 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 {
   /* Get the Input Capture value */
   tmpCC4[uwCaptureNumber++] = HAL_TIM_ReadCapturedValue(&htim21, TIM_CHANNEL_1);
-
-  if (uwCaptureNumber >= 2)
-  {
-    if ( tmpCC4[0] > tmpCC4[1] )
-    {
-      /* Compute the period length */
-      uwPeriodValue = 0xFFFFFFFF - tmpCC4[0] + tmpCC4[1] + 1;
-    }
-    else
-    {
-      /* Compute the period length */
-      uwPeriodValue = tmpCC4[1] - tmpCC4[0];
-    }
-    /* Frequency computation */
-    uwLsiFreq = (uint32_t) SystemCoreClock / uwPeriodValue;
-  }
 }
 
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
