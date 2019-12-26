@@ -564,6 +564,13 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
   __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
   wakeup = 1;
 }
+
+void HAL_UARTEx_WakeupCallback(UART_HandleTypeDef *huart)
+{
+	/* Clear Wake Up Flag */
+	  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+	  wakeup = 2;
+}
 /* USER CODE END 4 */
 
 /**
