@@ -103,15 +103,15 @@ void stm32l_lowPowerSetup () {
 
 	// Configure LPUART for Wake-up
 	// make sure that no UART transfer is on-going
-	// while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_BUSY) == SET);
+	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_BUSY) == SET);
 	// make sure that UART is ready to receive
-	// while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_REACK) == RESET);
+	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_REACK) == RESET);
 
-	// UART_WakeUpTypeDef wakeup;
-	// wakeup.WakeUpEvent=UART_WAKEUP_ON_STARTBIT; // UART_WAKEUP_ON_READDATA_NONEMPTY
-	// HAL_UARTEx_StopModeWakeUpSourceConfig(&huart2,wakeup);
-	// __HAL_UART_ENABLE_IT(&huart2, UART_IT_WUF);
-	// HAL_UARTEx_EnableStopMode(&huart2);
+	UART_WakeUpTypeDef wakeup;
+	wakeup.WakeUpEvent=UART_WAKEUP_ON_STARTBIT; // UART_WAKEUP_ON_READDATA_NONEMPTY
+	HAL_UARTEx_StopModeWakeUpSourceConfig(&huart2,wakeup);
+	__HAL_UART_ENABLE_IT(&huart2, UART_IT_WUF);
+	HAL_UARTEx_EnableStopMode(&huart2);
 
 	// GPIO Wake up is configured by CubeMx config and keeping the GPIO activated
 
@@ -132,6 +132,8 @@ void stm32l_lowPowerResume () {
 	// Reinit GPIOs
 	MX_GPIO_Init();
 	//MX_RTC_Init();
+
+	HAL_UARTEx_DisableStopMode(&huart2);
 
 	// Configure RTC to wake up after 500ms
 
@@ -242,7 +244,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC;
-  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+  PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_HSI;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -281,7 +283,7 @@ static void MX_RTC_Init(void)
   }
   /** Enable the WakeUp 
   */
-  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 1, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
   {
     Error_Handler();
   }
