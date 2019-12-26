@@ -51,7 +51,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-uint16_t tmpCC4[2] = {0, 0};
+uint32_t tmpCC4[2] = {0, 0};
 uint32_t uwLsiFreq = 0;
 
 uint32_t uwCaptureNumber = 0;
@@ -279,13 +279,25 @@ static void MX_RTC_Init(void)
 
   /* USER CODE BEGIN RTC_Init 1 */
 	uwLsiFreq = GetLSIFrequency();
+	uint8_t SetAsynch = 0x7F;
+	uint16_t bestAccurate = 0xFFFF;
+	for (uint8_t i = 0 ; i < 0x7F; i++) {
+		uint32_t SetSynch = (uwLsiFreq / (i + 1)) - 1;
+		if (SetSynch > 0x1FFF) continue;
+		int32_t abs = ((SetSynch + 1) * (i + 1)) - uwLsiFreq;
+		if (abs < 0) abs = -abs;
+		if (abs <= bestAccurate) {
+			SetAsynch = i;
+			bestAccurate = abs;
+		}
+	}
   /* USER CODE END RTC_Init 1 */
   /** Initialize RTC Only 
   */
   hrtc.Instance = RTC;
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-  hrtc.Init.AsynchPrediv = 0x7F;
-  hrtc.Init.SynchPrediv = (uwLsiFreq/128) - 1;
+  hrtc.Init.AsynchPrediv = SetAsynch;
+  hrtc.Init.SynchPrediv = (uwLsiFreq/(SetAsynch + 1)) - 1;
   hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
   hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
@@ -380,7 +392,7 @@ static void MX_TIM21_Init(void)
   }
   sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV8;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
   if (HAL_TIM_IC_ConfigChannel(&htim21, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
@@ -534,16 +546,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     if ( tmpCC4[0] > tmpCC4[1] )
     {
       /* Compute the period length */
-      uwPeriodValue = (uint16_t)(0xFFFF - tmpCC4[0] + tmpCC4[1] + 1);
+      uwPeriodValue = 0xFFFFFFFF - tmpCC4[0] + tmpCC4[1] + 1;
     }
     else
     {
       /* Compute the period length */
-      uwPeriodValue = (uint16_t)(tmpCC4[1] - tmpCC4[0]);
+      uwPeriodValue = tmpCC4[1] - tmpCC4[0];
     }
     /* Frequency computation */
     uwLsiFreq = (uint32_t) SystemCoreClock / uwPeriodValue;
-    uwLsiFreq *= 8;
   }
 }
 
