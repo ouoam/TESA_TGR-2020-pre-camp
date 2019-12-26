@@ -144,7 +144,7 @@ void stm32l_lowPowerResume () {
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint8_t wakeup = 0;
 /* USER CODE END 0 */
 
 /**
@@ -188,6 +188,8 @@ int main(void)
   while (1)
   {
 	  HAL_UART_Transmit(&huart2, (uint8_t *)"H", 1, 10);
+	  HAL_UART_Transmit(&huart2, &wakeup, 1, 10);
+	  wakeup = 0;
 	  // HAL_Delay(1000);
 	  stm32l_lowPowerSetup();
 	      // sleeping
@@ -279,7 +281,7 @@ static void MX_RTC_Init(void)
   }
   /** Enable the WakeUp 
   */
-  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5 * 60, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 1, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
   {
     Error_Handler();
   }
@@ -419,7 +421,12 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
+{
+  /* Clear Wake Up Flag */
+  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+  wakeup = 1;
+}
 /* USER CODE END 4 */
 
 /**
