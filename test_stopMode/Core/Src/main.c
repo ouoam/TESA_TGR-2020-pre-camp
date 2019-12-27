@@ -45,17 +45,9 @@ RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi1;
 
-TIM_HandleTypeDef htim21;
-
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
-uint32_t tmpCC4[2] = {0, 0};
-uint32_t uwLsiFreq = 0;
-
-uint32_t uwCaptureNumber = 0;
-uint32_t uwPeriodValue = 0;
 
 /* USER CODE END PV */
 
@@ -65,10 +57,7 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USART2_UART_Init(void);
-static void MX_TIM21_Init(void);
 /* USER CODE BEGIN PFP */
-
-static uint32_t GetLSIFrequency(void);
 
 void _stm32l_disableGpios() {
 
@@ -193,7 +182,6 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_USART2_UART_Init();
-  MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -229,12 +217,16 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage 
   */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  /** Configure LSE Drive Capability 
+  */
+  HAL_PWR_EnableBkUpAccess();
+  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLLMUL_6;
@@ -258,7 +250,7 @@ void SystemClock_Config(void)
   }
   PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_RTC;
   PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_HSI;
-  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -278,26 +270,14 @@ static void MX_RTC_Init(void)
   /* USER CODE END RTC_Init 0 */
 
   /* USER CODE BEGIN RTC_Init 1 */
-	uwLsiFreq = GetLSIFrequency();
-	uint8_t SetAsynch = 0x7F;
-	uint16_t bestAccurate = 0xFFFF;
-	for (uint8_t i = 0 ; i < 0x7F; i++) {
-		uint32_t SetSynch = (uwLsiFreq / (i + 1)) - 1;
-		if (SetSynch > 0x1FFF) continue;
-		int32_t abs = ((SetSynch + 1) * (i + 1)) - uwLsiFreq;
-		if (abs < 0) abs = -abs;
-		if (abs <= bestAccurate) {
-			SetAsynch = i;
-			bestAccurate = abs;
-		}
-	}
+
   /* USER CODE END RTC_Init 1 */
   /** Initialize RTC Only 
   */
   hrtc.Instance = RTC;
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-  hrtc.Init.AsynchPrediv = SetAsynch;
-  hrtc.Init.SynchPrediv = (uwLsiFreq/(SetAsynch + 1)) - 1;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
   hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
   hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
   hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
@@ -308,7 +288,7 @@ static void MX_RTC_Init(void)
   }
   /** Enable the WakeUp 
   */
-  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
+  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 4, RTC_WAKEUPCLOCK_CK_SPRE_16BITS) != HAL_OK)
   {
     Error_Handler();
   }
@@ -353,58 +333,6 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
-
-}
-
-/**
-  * @brief TIM21 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM21_Init(void)
-{
-
-  /* USER CODE BEGIN TIM21_Init 0 */
-
-  /* USER CODE END TIM21_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
-
-  /* USER CODE BEGIN TIM21_Init 1 */
-
-  /* USER CODE END TIM21_Init 1 */
-  htim21.Instance = TIM21;
-  htim21.Init.Prescaler = 0;
-  htim21.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim21.Init.Period = 0xFFFF;
-  htim21.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim21.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_IC_Init(&htim21) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim21, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim21, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIMEx_RemapConfig(&htim21, TIM21_TI1_LSI) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM21_Init 2 */
-  HAL_TIM_IC_DeInit(&htim21);
-  /* USER CODE END TIM21_Init 2 */
 
 }
 
@@ -501,62 +429,6 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-/**
-  * @brief  Configures TIM21 to measure the LSI oscillator frequency.
-  * @param  None
-  * @retval LSI Frequency
-  */
-static uint32_t GetLSIFrequency(void)
-{
-	MX_TIM21_Init();
-	HAL_TIM_IC_Init(&htim21);
-
-	uwCaptureNumber = 0;
-
-  /* Start the TIM Input Capture measurement in interrupt mode */
-  if(HAL_TIM_IC_Start_IT(&htim21, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /* Wait until the TIM21 get 2 LSI edges */
-  while(uwCaptureNumber != 2)
-  {
-  }
-
-  /* Disable TIM21 CC1 Interrupt Request */
-  HAL_TIM_IC_Stop_IT(&htim21, TIM_CHANNEL_1);
-
-  /* Deinitialize the TIM21 peripheral registers to their default reset values */
-  HAL_TIM_IC_DeInit(&htim21);
-
-  if ( tmpCC4[0] > tmpCC4[1] )
-  {
-	/* Compute the period length */
-	uwPeriodValue = 0xFFFFFFFF - tmpCC4[0] + tmpCC4[1] + 1;
-  }
-  else
-  {
-	/* Compute the period length */
-	uwPeriodValue = tmpCC4[1] - tmpCC4[0];
-  }
-  /* Frequency computation */
-  uwLsiFreq = (uint32_t) SystemCoreClock / uwPeriodValue;
-
-  return uwLsiFreq;
-}
-
-/**
-  * @brief  Input Capture callback in non blocking mode
-  * @param  htim : TIM IC handle
-  * @retval None
-*/
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-  /* Get the Input Capture value */
-  tmpCC4[uwCaptureNumber++] = HAL_TIM_ReadCapturedValue(&htim21, TIM_CHANNEL_1);
-}
-
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 {
   /* Clear Wake Up Flag */
@@ -570,6 +442,7 @@ void HAL_UARTEx_WakeupCallback(UART_HandleTypeDef *huart)
 	  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
 	  wakeup = 2;
 }
+
 /* USER CODE END 4 */
 
 /**
