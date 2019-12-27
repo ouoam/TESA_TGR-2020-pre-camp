@@ -151,14 +151,14 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     PA7     ------> SPI1_MOSI
     PA6     ------> SPI1_MISO 
     */
-    GPIO_InitStruct.Pin = PB3_RESERVED_Pin;
+    GPIO_InitStruct.Pin = RADIO_SCLK_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
-    HAL_GPIO_Init(PB3_RESERVED_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(RADIO_SCLK_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = PA7_RESERVED_Pin|PA6_RESERVED_Pin;
+    GPIO_InitStruct.Pin = RADIO_MOSI_Pin|RADIO_MISO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -193,9 +193,9 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
     PA7     ------> SPI1_MOSI
     PA6     ------> SPI1_MISO 
     */
-    HAL_GPIO_DeInit(PB3_RESERVED_GPIO_Port, PB3_RESERVED_Pin);
+    HAL_GPIO_DeInit(RADIO_SCLK_GPIO_Port, RADIO_SCLK_Pin);
 
-    HAL_GPIO_DeInit(GPIOA, PA7_RESERVED_Pin|PA6_RESERVED_Pin);
+    HAL_GPIO_DeInit(GPIOA, RADIO_MOSI_Pin|RADIO_MISO_Pin);
 
   /* USER CODE BEGIN SPI1_MspDeInit 1 */
 
