@@ -56,8 +56,8 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern UART_HandleTypeDef hlpuart1;
 extern RTC_HandleTypeDef hrtc;
-extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -185,17 +185,17 @@ void EXTI4_15_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
+  * @brief This function handles RNG and LPUART1 Interrupts / LPUART1 wake-up interrupt through EXTI line 28.
   */
-void USART2_IRQHandler(void)
+void RNG_LPUART1_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
+  /* USER CODE BEGIN RNG_LPUART1_IRQn 0 */
 
-  /* USER CODE END USART2_IRQn 0 */
-  HAL_UART_IRQHandler(&huart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
+  /* USER CODE END RNG_LPUART1_IRQn 0 */
+  HAL_UART_IRQHandler(&hlpuart1);
+  /* USER CODE BEGIN RNG_LPUART1_IRQn 1 */
 
-  /* USER CODE END USART2_IRQn 1 */
+  /* USER CODE END RNG_LPUART1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
