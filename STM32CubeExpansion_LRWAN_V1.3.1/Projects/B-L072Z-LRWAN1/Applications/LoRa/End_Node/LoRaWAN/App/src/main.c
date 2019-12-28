@@ -92,6 +92,10 @@ uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
 uint8_t coefficient = 100;
 
+void RxCpltCallback(uint8_t *rxChar) {
+	PRINTF("H%c", *rxChar);
+}
+
 UART_HandleTypeDef huart1;
 
 /*!
@@ -177,6 +181,8 @@ int main(void)
 
 	/* Configure the hardware*/
 	HW_Init();
+
+	vcom_ReceiveInit(RxCpltCallback);
 
 	/* USER CODE BEGIN 1 */
 	PRINTF("WAIT\n\r");

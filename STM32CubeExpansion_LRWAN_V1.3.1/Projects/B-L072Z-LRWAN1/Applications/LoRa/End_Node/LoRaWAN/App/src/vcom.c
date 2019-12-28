@@ -49,7 +49,7 @@ void vcom_Init(void (*TxCb)(void))
       - Hardware flow control disabled (RTS and CTS signals) */
   UartHandle.Instance        = USARTx;
 
-  UartHandle.Init.BaudRate   = 115200;
+  UartHandle.Init.BaudRate   = 57600;
   UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
   UartHandle.Init.StopBits   = UART_STOPBITS_1;
   UartHandle.Init.Parity     = UART_PARITY_NONE;
@@ -92,6 +92,8 @@ void vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar))
 
   /*Enable wakeup from stop mode*/
   HAL_UARTEx_EnableStopMode(&UartHandle);
+
+  __HAL_UART_ENABLE_IT(&UartHandle, UART_IT_WUF);
 
   /*Start LPUART receive on IT*/
   HAL_UART_Receive_IT(&UartHandle, &charRx, 1);
