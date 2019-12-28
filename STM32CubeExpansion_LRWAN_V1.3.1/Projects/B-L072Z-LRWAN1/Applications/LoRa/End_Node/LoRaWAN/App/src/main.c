@@ -21,7 +21,6 @@
 #include "hw.h"
 #include "low_power_manager.h"
 #include "lora.h"
-#include "bsp.h"
 #include "timeServer.h"
 #include "vcom.h"
 #include "version.h"
@@ -33,19 +32,9 @@
 #define LORAWAN_MAX_BAT   254
 
 /*!
- * CAYENNE_LPP is myDevices Application server.
- */
-//#define CAYENNE_LPP
-#define LPP_DATATYPE_DIGITAL_INPUT  0x0
-#define LPP_DATATYPE_DIGITAL_OUTPUT 0x1
-#define LPP_DATATYPE_HUMIDITY       0x68
-#define LPP_DATATYPE_TEMPERATURE    0x67
-#define LPP_DATATYPE_BAROMETER      0x73
-#define LPP_APP_PORT 99
-/*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            600000
+#define APP_TX_DUTYCYCLE                            20000
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -78,24 +67,33 @@
  */
 static uint8_t AppDataBuff[LORAWAN_APP_DATA_BUFF_SIZE];
 
-
+#define SENSOR_RESP_UNKNOWN 0
 #define SENSOR_RESP_ACK 1
 #define SENSOR_RESP_NAK 2
 #define SENSOR_RESP_SINGLE 3
 #define SENSOR_RESP_AUTO 4
+#define SENSOR_RESP_COEFF 5
+
+#define SENSOR_COEFF_ADDR 0x08080000
 
 static void MX_USART1_UART_Init(void);
-void SENSOR_Start_Measuring(void);
-void SENSOR_Stop_Measuring(void);
-void SENSOR_Read_Measuring(void);
-void SENSOR_Stop_Auto_Send(void);
-void SENSOR_Enable_Auto_Send(void);
-uint8_t respBuf[50];
+int SENSOR_Start_Measuring(void);
+int SENSOR_Stop_Measuring(void);
+int SENSOR_Read_Measuring(void);
+int SENSOR_Set_Coefficient(uint8_t coeff);
+int SENSOR_Read_Coefficient(void);
+int SENSOR_Stop_Auto_Send(void);
+int SENSOR_Enable_Auto_Send(void);
+
+void writeToEEPROM (uint32_t address, uint32_t value);
+uint32_t readFromEEPROM (uint32_t address);
+
 uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
-uint8_t sensorResp = 0;
+uint8_t coefficient = 100;
 
 UART_HandleTypeDef huart1;
+
 /*!
  * User application data structure
  */
@@ -168,76 +166,86 @@ static  LoRaParam_t LoRaParamInit = {LORAWAN_ADR_STATE,
   */
 int main(void)
 {
-  /* STM32 HAL library initialization*/
-  HAL_Init();
+	/* STM32 HAL library initialization*/
+	HAL_Init();
 
-  /* Configure the system clock*/
-  SystemClock_Config();
+	/* Configure the system clock*/
+	SystemClock_Config();
 
-  /* Configure the debug mode*/
-  DBG_Init();
+	/* Configure the debug mode*/
+	DBG_Init();
 
-  /* Configure the hardware*/
-  HW_Init();
+	/* Configure the hardware*/
+	HW_Init();
 
-  /* USER CODE BEGIN 1 */
-  PRINTF("WAIT\n\r");
-  HAL_Delay(2000);
-  MX_USART1_UART_Init();
-	while (1) {
-	  HAL_UART_Receive(&huart1, respBuf, 40, 500);
-	  if (respBuf[0] == 0xA5 && respBuf[1] == 0xA5) break;
-	  for(int i = 0; i < 40; i++) PRINTF("%c", respBuf[i]);
-	  PRINTF("STOP\n\r");
-	  SENSOR_Stop_Auto_Send();
-	}
+	/* USER CODE BEGIN 1 */
+	PRINTF("WAIT\n\r");
+	HW_RTC_DelayMs(2000);
+	MX_USART1_UART_Init();
+
+	do {
+		PRINTF("STOP\n\r");
+	} while (!SENSOR_Stop_Auto_Send());
+
 	SENSOR_Read_Measuring();
-  /* USER CODE END 1 */
 
-  /*Disbale Stand-by mode*/
-  LPM_SetOffMode(LPM_APPLI_Id, LPM_Disable);
+	coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
+	PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+	if ( coefficient < 30 || 200 < coefficient ) {
+		coefficient = 100;
+		writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+	} else {
+		SENSOR_Set_Coefficient(coefficient);
+	}
+	SENSOR_Read_Coefficient();
 
-  PRINTF("APP_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__APP_VERSION >> 24), (uint8_t)(__APP_VERSION >> 16), (uint8_t)(__APP_VERSION >> 8), (uint8_t)__APP_VERSION);
-  PRINTF("MAC_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__LORA_MAC_VERSION >> 24), (uint8_t)(__LORA_MAC_VERSION >> 16), (uint8_t)(__LORA_MAC_VERSION >> 8), (uint8_t)__LORA_MAC_VERSION);
+	/* USER CODE END 1 */
 
-  /* Configure the Lora Stack*/
-  LORA_Init(&LoRaMainCallbacks, &LoRaParamInit);
+	/*Disbale Stand-by mode*/
+	LPM_SetOffMode(LPM_APPLI_Id, LPM_Disable);
 
-  LORA_Join();
+	PRINTF("APP_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__APP_VERSION >> 24), (uint8_t)(__APP_VERSION >> 16), (uint8_t)(__APP_VERSION >> 8), (uint8_t)__APP_VERSION);
+	PRINTF("MAC_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__LORA_MAC_VERSION >> 24), (uint8_t)(__LORA_MAC_VERSION >> 16), (uint8_t)(__LORA_MAC_VERSION >> 8), (uint8_t)__LORA_MAC_VERSION);
 
-  LoraStartTx(TX_ON_TIMER) ;
-  while (1)
-  {
-    if (AppProcessRequest == LORA_SET)
-    {
-      /*reset notification flag*/
-      AppProcessRequest = LORA_RESET;
-      /*Send*/
-      Send(NULL);
-    }
-    if (LoraMacProcessRequest == LORA_SET)
-    {
-      /*reset notification flag*/
-      LoraMacProcessRequest = LORA_RESET;
-      LoRaMacProcess();
-    }
-    /*If a flag is set at this point, mcu must not enter low power and must loop*/
-    DISABLE_IRQ();
+	/* Configure the Lora Stack*/
+	LORA_Init(&LoRaMainCallbacks, &LoRaParamInit);
 
-    /* if an interrupt has occurred after DISABLE_IRQ, it is kept pending
-     * and cortex will not enter low power anyway  */
-    if ((LoraMacProcessRequest != LORA_SET) && (AppProcessRequest != LORA_SET))
-    {
+	LORA_Join();
+
+	LoraStartTx(TX_ON_TIMER) ;
+	while (1)
+	{
+		if (AppProcessRequest == LORA_SET)
+		{
+			/*reset notification flag*/
+			AppProcessRequest = LORA_RESET;
+			/*Send*/
+			Send(NULL);
+		}
+		if (LoraMacProcessRequest == LORA_SET)
+		{
+			/*reset notification flag*/
+			LoraMacProcessRequest = LORA_RESET;
+			LoRaMacProcess();
+		}
+
+		/*If a flag is set at this point, mcu must not enter low power and must loop*/
+		DISABLE_IRQ();
+
+		/* if an interrupt has occurred after DISABLE_IRQ, it is kept pending
+		* and cortex will not enter low power anyway  */
+		if ((LoraMacProcessRequest != LORA_SET) && (AppProcessRequest != LORA_SET))
+		{
 #ifndef LOW_POWER_DISABLE
-      LPM_EnterLowPower();
+			LPM_EnterLowPower();
 #endif
-    }
+		}
 
-    ENABLE_IRQ();
+		ENABLE_IRQ();
 
-    /* USER CODE BEGIN 2 */
-    /* USER CODE END 2 */
-  }
+		/* USER CODE BEGIN 2 */
+		/* USER CODE END 2 */
+	}
 }
 
 
@@ -257,59 +265,42 @@ static void LORA_HasJoined(void)
 
 static void Send( void* context )
 {
+	if ( LORA_JoinStatus () != LORA_SET )
+	{
+		/*Not joined, try again later*/
+		LORA_Join();
+		return;
+	}
+
+	int success = 0;
+
 	MX_USART1_UART_Init();
+
 	SENSOR_Start_Measuring();
-	HAL_UART_Receive(&huart1, respBuf, 2, 1000);
-	respBuf[2] = 0;
-  /* USER CODE BEGIN 3 */
-  if ( LORA_JoinStatus () != LORA_SET)
-  {
-    /*Not joined, try again later*/
-    LORA_Join();
-    SENSOR_Stop_Measuring();
-    HAL_UART_Receive(&huart1, respBuf, 2, 1000);
-    return;
-  }
 
-  HAL_UART_Receive(&huart1, respBuf, 40, 10000);
-  SENSOR_Read_Measuring();
+	HW_RTC_DelayMs(6000);
 
-  sensorResp = 0;
-  HAL_UART_Receive(&huart1, respBuf, 2, 1000);
-  if (respBuf[0] == 0x40) {
-	uint8_t len = respBuf[1];
-	uint16_t calChecksum = 0;
+	success = SENSOR_Read_Measuring();
 
-	HAL_UART_Receive(&huart1, &respBuf[2], len + 1, 30); // get cmd, data and checksum
-	for (int i = 0; i < len + 2; i++) { // with head, len and cmd ( +3 ) but not checksum ( -1 )
-		calChecksum += respBuf[i];
+	SENSOR_Stop_Measuring();
+
+	if (success == SENSOR_RESP_SINGLE) {
+		AppData.Buff[0] = 32;
+		AppData.Buff[1] = pm2_5 & 0xFF;
+		if (AppData.Buff[1] == 191) {
+			AppData.Buff[1] = 192;
+		}
+	} else {
+		AppData.Buff[0] = 32;
+		AppData.Buff[1] = 191;
 	}
-	calChecksum = (65536 - calChecksum) & 255;
-	if (calChecksum == respBuf[2 + len]) {
-		pm2_5 = ((uint16_t)respBuf[3] << 8) | respBuf[4];
-		pm10 = ((uint16_t)respBuf[5] << 8) | respBuf[6];
-		sensorResp = SENSOR_RESP_SINGLE;
-	}
-  } else {
-	  HAL_UART_Receive(&huart1, &respBuf[2], 40, 30);
-  }
-  SENSOR_Stop_Measuring();
-  if (sensorResp == SENSOR_RESP_SINGLE) {
-	  AppData.Buff[0] = 32;
-	  AppData.Buff[1] = respBuf[4];
-	  if (AppData.Buff[1] == 191) {
-		  AppData.Buff[1] = 192;
-	  }
-  } else {
-	  AppData.Buff[0] = 32;
-	  AppData.Buff[1] = 191;
-  }
-  //set size and port
+
+	//set size and port
 	AppData.BuffSize = 2;
 	AppData.Port = LORAWAN_APP_PORT;
 
 	//Send to LoRaWAN
-	LORA_send( &AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE);
+	LORA_send( &AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE );
   /* USER CODE END 3 */
 }
 
@@ -382,30 +373,102 @@ uint8_t LORA_GetBatteryLevel(void)
   return 254;
 }
 
+int SENSOR_Parse_Resp() {
+	uint8_t respBuf[40];
+	memset(respBuf, 0, 40);
+	if (HAL_UART_Receive(&huart1, respBuf, 2, 500) != HAL_OK) {
+		return SENSOR_RESP_UNKNOWN;
+	}
+	if (respBuf[0] == 0xA5 && respBuf[1] == 0xA5) return SENSOR_RESP_ACK;
+	else if (respBuf[0] == 0x96 && respBuf[1] == 0x96) return SENSOR_RESP_NAK;
+	else if (respBuf[0] == 0x40) { // read particle and coefficient
+		uint8_t len = respBuf[1];
+		uint16_t calChecksum = 0;
 
-void SENSOR_Start_Measuring() {
+		HAL_UART_Receive(&huart1, &respBuf[2], len + 1, 100); // get cmd, data and checksum
+		for (int i = 0; i < len + 2; i++) { // with head, len and cmd ( +3 ) but not checksum ( -1 )
+			calChecksum += respBuf[i];
+		}
+		calChecksum = (65536 - calChecksum) & 255;
+		if (calChecksum == respBuf[2 + len]) {
+			if (respBuf[2] == 0x04) { // check for cmd
+				pm2_5 = ((uint16_t)respBuf[3] << 8) | respBuf[4];
+				pm10 = ((uint16_t)respBuf[5] << 8) | respBuf[6];
+				return SENSOR_RESP_SINGLE;
+			} else if (respBuf[2] == 0x10) {
+				coefficient = respBuf[3];
+				return SENSOR_RESP_COEFF;
+			}
+		}
+	}
+	else if (respBuf[0] == 0x42 && respBuf[1] == 0x4d) {
+		// Auto send
+		uint8_t len;
+		uint16_t calChecksum = 0;
+
+		HAL_UART_Receive(&huart1, &respBuf[2], 2, 100); // get len
+
+		len = ((uint16_t)respBuf[2] << 8) | respBuf[3];
+
+		HAL_UART_Receive(&huart1, &respBuf[4], len, 100); //get data and checksum
+		for (int i = 0; i < len + 2; i++) { // with head and len ( +4 ) but not checksum ( -2 )
+			calChecksum += respBuf[i];
+		}
+		if (calChecksum == (((uint16_t)respBuf[2 + len] << 8) | respBuf[2 + len + 1])) {
+			uint16_t pm2_5_temp = ((uint16_t)respBuf[6] << 8) | respBuf[7];
+			uint16_t pm10_temp = ((uint16_t)respBuf[8] << 8) | respBuf[9];
+			if (!(pm2_5_temp == 0 && pm10_temp == 0)) {
+				pm2_5 = pm2_5_temp;
+				pm10 = pm10_temp;
+				return SENSOR_RESP_AUTO;
+			}
+		}
+	} else { // clear
+		HAL_UART_Receive(&huart1, &respBuf[2], 38, 200);
+	}
+	return SENSOR_RESP_UNKNOWN;
+}
+
+int SENSOR_Start_Measuring() {
 	uint8_t buff[] = {0x68, 0x01, 0x01, 0x96};
-	HAL_UART_Transmit(&huart1, buff, 4, 500);
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_ACK);
 }
 
-void SENSOR_Stop_Measuring() {
+int SENSOR_Stop_Measuring() {
 	uint8_t buff[] = {0x68, 0x01, 0x02, 0x95};
-	HAL_UART_Transmit(&huart1, buff, 4, 500);
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_ACK);
 }
 
-void SENSOR_Read_Measuring() {
+int SENSOR_Read_Measuring() {
 	uint8_t buff[] = {0x68, 0x01, 0x04, 0x93};
-	HAL_UART_Transmit(&huart1, buff, 4, 500);
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_SINGLE);
 }
 
-void SENSOR_Stop_Auto_Send() {
+int SENSOR_Set_Coefficient(uint8_t coeff) {
+	uint8_t buff[] = {0x68, 0x02, 0x08, coeff, 0x8E - coeff};
+	HAL_UART_Transmit(&huart1, buff, 5, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_ACK);
+}
+
+int SENSOR_Read_Coefficient() {
+	uint8_t buff[] = {0x68, 0x01, 0x10, 0x87};
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_COEFF);
+}
+
+int SENSOR_Stop_Auto_Send() {
 	uint8_t buff[] = {0x68, 0x01, 0x20, 0x77};
-	HAL_UART_Transmit(&huart1, buff, 4, 500);
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_ACK);
 }
 
-void SENSOR_Enable_Auto_Send() {
+int SENSOR_Enable_Auto_Send() {
 	uint8_t buff[] = {0x68, 0x01, 0x40, 0x57};
-	HAL_UART_Transmit(&huart1, buff, 4, 500);
+	HAL_UART_Transmit(&huart1, buff, 4, 100);
+	return (SENSOR_Parse_Resp() == SENSOR_RESP_ACK);
 }
 
 /**
@@ -466,4 +529,30 @@ static void MX_USART1_UART_Init(void)
 
 }
 
+
+void writeToEEPROM (uint32_t address, uint32_t value)
+{
+	HAL_StatusTypeDef flash_ok;
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Unlock();
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Erase(address);
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, address, value);
+	}
+	for (flash_ok = HAL_ERROR; flash_ok != HAL_OK; )
+	{
+		flash_ok = HAL_FLASHEx_DATAEEPROM_Lock();
+	}
+}
+
+uint32_t readFromEEPROM (uint32_t address)
+{
+	return *( uint32_t *)address;
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

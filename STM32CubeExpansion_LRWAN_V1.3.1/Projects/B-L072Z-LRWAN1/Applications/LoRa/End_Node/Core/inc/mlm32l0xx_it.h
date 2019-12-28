@@ -32,8 +32,8 @@ Maintainer: Miguel Luis and Gregory Cristian
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32L0xx_IT_H__
-#define __STM32L0xx_IT_H__
+#ifndef __32L082MLM_IT_H__
+#define __32L082MLM_IT_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,22 +45,46 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
+/**
+ * @brief  RTC IRQ Handler on the RTC Alarm
+ * @param  None
+ * @retval None
+ */
+void RTC_IRQHandler(void);
+
+/**
+ * @brief  Handles External lines 0 to 1 interrupt request.
+ * @param  None
+ * @retval None
+ */
+void EXTI0_1_IRQHandler(void);
+
+/**
+ * @brief  Handles External lines 2 to 3 interrupt request.
+ * @param  None
+ * @retval None
+ */
+void EXTI2_3_IRQHandler(void);
+
+/**
+ * @brief  Handles External lines 4 to 15 interrupt request.
+ * @param  None
+ * @retval None
+ */
 void EXTI4_15_IRQHandler(void);
-void TIM21_IRQHandler(void);
+
+/**
+ * @brief  vcom IRQ Handler
+ * @param  None
+ * @retval None
+ */
+void UARTX_IRQHandler(void);
+
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __STM32L0xx_IT_H__ */
+#endif /* __32L082MLM_IT_H__ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

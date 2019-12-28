@@ -32,8 +32,8 @@ Maintainer: Miguel Luis and Gregory Cristian
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HW_CONF_L0_H__
-#define __HW_CONF_L0_H__
+#ifndef __32L082MLM_HW_CONF_H__
+#define __32L082MLM_HW_CONF_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,9 +42,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-
-//#define RADIO_DIO_4
-//#define RADIO_DIO_5
 
 /* LORA I/O definition */
 
@@ -75,15 +72,11 @@ extern "C" {
 #define RADIO_DIO_3_PORT                          GPIOC
 #define RADIO_DIO_3_PIN                           GPIO_PIN_13
 
-#ifdef RADIO_DIO_4
 #define RADIO_DIO_4_PORT                          GPIOA
 #define RADIO_DIO_4_PIN                           GPIO_PIN_5
-#endif
 
-#ifdef RADIO_DIO_5
 #define RADIO_DIO_5_PORT                          GPIOA
 #define RADIO_DIO_5_PIN                           GPIO_PIN_4
-#endif
 
 #define RADIO_TCXO_VCC_PORT                       GPIOA
 #define RADIO_TCXO_VCC_PIN                        GPIO_PIN_12
@@ -104,61 +97,54 @@ extern "C" {
 #define SPI1_AF                          GPIO_AF0_SPI1
 
 /* ADC MACRO redefinition */
-
 #define ADC_READ_CHANNEL                 ADC_CHANNEL_4
 #define ADCCLK_ENABLE()                 __HAL_RCC_ADC1_CLK_ENABLE() ;
 #define ADCCLK_DISABLE()                __HAL_RCC_ADC1_CLK_DISABLE() ;
-
-
 
 /* --------------------------- RTC HW definition -------------------------------- */
 
 #define RTC_OUTPUT       DBG_RTC_OUTPUT
 
 #define RTC_Alarm_IRQn              RTC_IRQn
-/* --------------------------- USART HW definition -------------------------------*/
-#define USARTx                           USART2
-#define USARTx_CLK_ENABLE()              __USART2_CLK_ENABLE();
+/* --------------------------- UART HW definition -------------------------------*/
+
+/* Definition for UARTx clock resources */
+#define USARTx                           LPUART1
+#define USARTx_CLK_ENABLE()              __LPUART1_CLK_ENABLE();
 #define USARTx_RX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
 #define USARTx_TX_GPIO_CLK_ENABLE()      __GPIOA_CLK_ENABLE()
 #define DMAx_CLK_ENABLE()                __HAL_RCC_DMA1_CLK_ENABLE()
 
-#define USARTx_FORCE_RESET()             __USART2_FORCE_RESET()
-#define USARTx_RELEASE_RESET()           __USART2_RELEASE_RESET()
+#define USARTx_FORCE_RESET()             __LPUART1_FORCE_RESET()
+#define USARTx_RELEASE_RESET()           __LPUART1_RELEASE_RESET()
 
-
-#define USARTx_TX_PIN                  GPIO_PIN_2
-#define USARTx_TX_GPIO_PORT            GPIOA
-#define USARTx_TX_AF                   GPIO_AF4_USART2
-#define USARTx_RX_PIN                  GPIO_PIN_3
-#define USARTx_RX_GPIO_PORT            GPIOA
-#define USARTx_RX_AF                   GPIO_AF4_USART2
+#define USARTx_TX_PIN                    GPIO_PIN_2
+#define USARTx_TX_GPIO_PORT              GPIOA
+#define USARTx_TX_AF                     GPIO_AF6_LPUART1
+#define USARTx_RX_PIN                    GPIO_PIN_3
+#define USARTx_RX_GPIO_PORT              GPIOA
+#define USARTx_RX_AF                     GPIO_AF6_LPUART1
 
 /* Definition for USARTx's NVIC */
-#define USARTx_IRQn                      USART2_IRQn
-#define USARTx_IRQHandler                USART2_IRQHandler
-
+#define USARTx_IRQn                      RNG_LPUART1_IRQn
+#define USARTx_IRQHandler                RNG_LPUART1_IRQHandler
 /* Definition for USARTx's DMA */
 #define USARTx_TX_DMA_CHANNEL             DMA1_Channel7
 
 /* Definition for USARTx's DMA Request */
-#define USARTx_TX_DMA_REQUEST             DMA_REQUEST_4
+#define USARTx_TX_DMA_REQUEST             DMA_REQUEST_5
 
 /* Definition for USARTx's NVIC */
 #define USARTx_DMA_TX_IRQn                DMA1_Channel4_5_6_7_IRQn
 #define USARTx_DMA_TX_IRQHandler          DMA1_Channel4_5_6_7_IRQHandler
 
-#define USARTx_Priority 0
-#define USARTx_DMA_Priority 0
-
-#define LED_Toggle( x )                 BSP_LED_Toggle( x );
-#define LED_On( x )                     BSP_LED_On( x );
-#define LED_Off( x )                    BSP_LED_Off( x );
+#define USARTx_Priority 1
+#define USARTx_DMA_Priority 1
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __HW_CONF_L0_H__ */
+#endif /* __32L082MLM_HW_CONF_H__ */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

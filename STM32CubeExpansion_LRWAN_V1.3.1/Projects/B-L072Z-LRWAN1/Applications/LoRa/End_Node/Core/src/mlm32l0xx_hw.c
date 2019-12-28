@@ -34,7 +34,6 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "hw.h"
 #include "radio.h"
 #include "debug.h"
-#include "bsp.h"
 #include "vcom.h"
 
 /*!
@@ -111,8 +110,6 @@ void HW_Init(void)
 
     TraceInit();
 
-    BSP_sensor_Init();
-
     BSP_LED_Init(LED1);
     BSP_LED_Init(LED2);
     BSP_LED_Init(LED3);
@@ -172,7 +169,7 @@ static void HW_IoDeInit(void)
 
   Radio.IoDeInit();
 
-  vcom_IoDeInit();
+// vcom_IoDeInit( );
 }
 
 

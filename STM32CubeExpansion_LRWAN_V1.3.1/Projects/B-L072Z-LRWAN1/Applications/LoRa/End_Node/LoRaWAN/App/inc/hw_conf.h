@@ -84,10 +84,8 @@ extern "C" {
 #endif
 
 #ifdef USE_B_L072Z_LRWAN1
-#include "stm32l0xx_hal.h"
-#include "b-l072z-lrwan1.h"
-#include "stm32l0xx_hal_conf.h"
 #include "mlm32l0xx_hw_conf.h"
+#include "b-l072z-lrwan1.h"
 #include "stm32l0xx_ll_rtc.h"
 #endif
 
@@ -100,6 +98,9 @@ extern "C" {
 
 /* debug swicthes in bsp.c */
 //#define SENSOR_ENABLED
+
+#define IRQ_PRIORITY_USARTX 2
+#define IRQ_PRIORITY_ALARMA 0
 
 
 /* Exported types ------------------------------------------------------------*/

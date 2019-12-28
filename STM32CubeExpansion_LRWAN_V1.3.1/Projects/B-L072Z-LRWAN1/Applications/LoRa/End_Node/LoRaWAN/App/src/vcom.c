@@ -27,7 +27,11 @@
 /* Uart Handle */
 static UART_HandleTypeDef UartHandle;
 
+uint8_t charRx;
+
 static void (*TxCpltCallback)(void);
+
+static void (*RxCpltCallback)(uint8_t *rxChar);
 /* Private function prototypes -----------------------------------------------*/
 /* Functions Definition ------------------------------------------------------*/
 void vcom_Init(void (*TxCb)(void))
@@ -50,7 +54,7 @@ void vcom_Init(void (*TxCb)(void))
   UartHandle.Init.StopBits   = UART_STOPBITS_1;
   UartHandle.Init.Parity     = UART_PARITY_NONE;
   UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-  UartHandle.Init.Mode       = UART_MODE_TX;
+  UartHandle.Init.Mode       = UART_MODE_TX_RX;
 
   if (HAL_UART_Init(&UartHandle) != HAL_OK)
   {
@@ -64,10 +68,42 @@ void vcom_Trace(uint8_t *p_data, uint16_t size)
   HAL_UART_Transmit_DMA(&UartHandle, p_data, size);
 }
 
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *UartHandle)
 {
   /* buffer transmission complete*/
-  TxCpltCallback();
+  if (NULL != TxCpltCallback)
+  {
+    TxCpltCallback();
+  }
+}
+
+void vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar))
+{
+  UART_WakeUpTypeDef WakeUpSelection;
+
+  /*record call back*/
+  RxCpltCallback = RxCb;
+
+  /*Set wakeUp event on start bit*/
+  WakeUpSelection.WakeUpEvent = UART_WAKEUP_ON_STARTBIT;
+//
+  HAL_UARTEx_StopModeWakeUpSourceConfig(&UartHandle, WakeUpSelection);
+
+  /*Enable wakeup from stop mode*/
+  HAL_UARTEx_EnableStopMode(&UartHandle);
+
+  /*Start LPUART receive on IT*/
+  HAL_UART_Receive_IT(&UartHandle, &charRx, 1);
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *UartHandle)
+{
+  if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == UartHandle->ErrorCode))
+  {
+    RxCpltCallback(&charRx);
+  }
+  HAL_UART_Receive_IT(UartHandle, &charRx, 1);
 }
 
 void vcom_DMA_TX_IRQHandler(void)
@@ -99,6 +135,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
 
     /* Enable USARTx clock */
     USARTx_CLK_ENABLE();
+  /* select USARTx clock source*/
+  RCC_PeriphCLKInitTypeDef  PeriphClkInit = {0};
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
+  PeriphClkInit.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_HSI;
+  HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
     /* Enable DMA clock */
     DMAx_CLK_ENABLE();

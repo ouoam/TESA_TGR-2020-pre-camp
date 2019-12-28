@@ -39,6 +39,13 @@ extern "C" {
 void vcom_Init(void (*Txcb)(void));
 
 /**
+* @brief  init receiver of vcom
+* @param  callback when Rx char is received
+* @return None
+*/
+void vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar));
+
+/**
 * @brief  send buffer @p_data of size size to vcom in dma mode
 * @param  p_data data to be sent
 * @param  szie of buffer p_data to be sent
