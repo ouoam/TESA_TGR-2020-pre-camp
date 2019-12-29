@@ -197,79 +197,9 @@
 			<locationURI>copy_PARENT1/Drivers/BSP/CMWX1ZZABZ-0xx/mlm32l07x01.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/BSP/Components/HTS221_Driver.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/hts221/HTS221_Driver.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/HTS221_Driver_HL.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/hts221/HTS221_Driver_HL.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/LPS22HB_Driver.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/lps22hb/LPS22HB_Driver.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/LPS22HB_Driver_HL.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/lps22hb/LPS22HB_Driver_HL.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/LPS25HB_Driver.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/lps25hb/LPS25HB_Driver.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/LPS25HB_Driver_HL.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/Components/lps25hb/LPS25HB_Driver_HL.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/BSP/Components/sx1276.c</name>
 			<type>1</type>
 			<locationURI>copy_PARENT1/Drivers/BSP/Components/sx1276/sx1276.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_humidity.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_humidity.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_pressure.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_pressure.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_temperature.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A1/x_nucleo_iks01a1_temperature.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_humidity.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_humidity.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_pressure.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_pressure.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_temperature.c</name>
-			<type>1</type>
-			<locationURI>copy_PARENT1/Drivers/BSP/X_NUCLEO_IKS01A2/x_nucleo_iks01a2_temperature.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/LoRaWAN/Crypto/aes.c</name>

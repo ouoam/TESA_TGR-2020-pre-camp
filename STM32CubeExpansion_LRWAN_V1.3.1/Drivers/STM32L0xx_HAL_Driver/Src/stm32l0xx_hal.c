@@ -298,7 +298,7 @@ __weak void HAL_IncTick(void)
   */
 __weak uint32_t HAL_GetTick(void)
 {
-  return HW_RTC_GetTimerValue();
+  return uwTick;
 }
 
 /**

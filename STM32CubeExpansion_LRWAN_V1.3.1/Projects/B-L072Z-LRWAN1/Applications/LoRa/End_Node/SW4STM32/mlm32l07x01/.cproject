@@ -58,12 +58,7 @@
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Utilities"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Patterns/Basic"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/Common"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/hts221"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/lps22hb"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/lps25hb"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/sx1276"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/X_NUCLEO_IKS01A1"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/X_NUCLEO_IKS01A2"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/B-L072Z-LRWAN1"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Mac/region"/>
 								</option>
@@ -173,12 +168,7 @@
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Utilities"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Patterns/Basic"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/Common"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/hts221"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/lps22hb"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/lps25hb"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/Components/sx1276"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/X_NUCLEO_IKS01A1"/>
-									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/X_NUCLEO_IKS01A2"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Drivers/BSP/B-L072Z-LRWAN1"/>
 									<listOptionValue builtIn="false" value="../../../../../../../../Middlewares/Third_Party/LoRaWAN/Mac/region"/>
 								</option>

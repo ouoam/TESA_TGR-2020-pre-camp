@@ -76,6 +76,11 @@ static uint8_t AppDataBuff[LORAWAN_APP_DATA_BUFF_SIZE];
 
 #define SENSOR_COEFF_ADDR 0x08080000
 
+uint32_t HAL_GetTick(void)
+{
+  return HW_RTC_GetTimerValue();
+}
+
 static void MX_USART1_UART_Init(void);
 int SENSOR_Start_Measuring(void);
 int SENSOR_Stop_Measuring(void);
