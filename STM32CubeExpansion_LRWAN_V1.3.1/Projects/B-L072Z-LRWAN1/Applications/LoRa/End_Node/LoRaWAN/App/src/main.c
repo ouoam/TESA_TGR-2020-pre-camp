@@ -131,6 +131,19 @@ void RxCpltCallback(uint8_t *rxChar) {
 	}
 }
 
+void InfiniteLoop() {
+	PRINTF("\r\n\r\n!!!ENTER INFINITE LOOP!!!\r\n");
+	HW_RTC_DelayMs(500);
+	DISABLE_IRQ();
+	while(1);
+}
+
+uint8_t enterLoop = 0;
+
+void InfiniteLoop1() {
+	enterLoop = 1;
+}
+
 UART_HandleTypeDef huart1;
 
 /*!
@@ -284,6 +297,13 @@ int main(void)
 
 		ENABLE_IRQ();
 
+		PRINTNOW();
+		PRINTF("\n\r");
+
+		if (enterLoop) {
+			InfiniteLoop();
+		}
+
 		/* USER CODE BEGIN 2 */
 		/* USER CODE END 2 */
 	}
@@ -371,8 +391,8 @@ static void LoraStartTx(TxEventType_t EventType)
     TimerSetValue(&TxTimer,  APP_TX_DUTYCYCLE);
     OnTxTimerEvent(NULL);
   }
-  else
-  {
+  //else
+  //{
     /* send everytime button is pushed */
     GPIO_InitTypeDef initStruct = {0};
 
@@ -381,8 +401,8 @@ static void LoraStartTx(TxEventType_t EventType)
     initStruct.Speed = GPIO_SPEED_HIGH;
 
     HW_GPIO_Init(USER_BUTTON_GPIO_PORT, USER_BUTTON_PIN, &initStruct);
-    HW_GPIO_SetIrq(USER_BUTTON_GPIO_PORT, USER_BUTTON_PIN, 0, Send);
-  }
+    HW_GPIO_SetIrq(USER_BUTTON_GPIO_PORT, USER_BUTTON_PIN, 0, InfiniteLoop1);
+  //}
 }
 
 static void LORA_ConfirmClass(DeviceClass_t Class)
