@@ -78,7 +78,7 @@ static uint8_t AppDataBuff[LORAWAN_APP_DATA_BUFF_SIZE];
 
 uint32_t HAL_GetTick(void)
 {
-  return HW_RTC_GetTimerValue();
+  return TimerGetCurrentTime();
 }
 
 static void MX_USART1_UART_Init(void);
@@ -97,8 +97,38 @@ uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
 uint8_t coefficient = 100;
 
+uint8_t RxBuff[5];
+uint8_t RxBuffI = 0;
+
 void RxCpltCallback(uint8_t *rxChar) {
-	PRINTF("H%c", *rxChar);
+	if ( RxBuffI == 5 ) {
+		RxBuffI = 0;
+		PRINTF("Rx Buffer overflow\r\n");
+	}
+	RxBuff[RxBuffI++] = *rxChar;
+	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
+		if ( RxBuff[0] == 'G' ) {
+			PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+		} else if ( RxBuff[0] == 'S' ) {
+			uint8_t i = 1;
+			uint16_t temp = 0;
+			while ( RxBuff[i] != '\n' && RxBuff[i] != '\r' && RxBuff[i] != ' ' ) {
+				temp *= 10;
+				temp += (RxBuff[i] - '0') % 10;
+				i++;
+			}
+			if ( temp < 30 || 200 < temp ) {
+				PRINTF("COEFFICIENT out of range (only 30 - 200)\r\n");
+			} else {
+				PRINTF("Set COEFFICIENT to %u\r\n", temp);
+				coefficient = temp;
+				writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+				SENSOR_Set_Coefficient(coefficient);
+				SENSOR_Read_Coefficient();
+			}
+		}
+		RxBuffI = 0;
+	}
 }
 
 UART_HandleTypeDef huart1;
@@ -288,12 +318,13 @@ static void Send( void* context )
 	MX_USART1_UART_Init();
 
 	SENSOR_Start_Measuring();
+	PRINTF("SENSOR : Start Measuring\n\r");
 
 	HW_RTC_DelayMs(6000);
 
 	success = SENSOR_Read_Measuring();
-
 	SENSOR_Stop_Measuring();
+	PRINTF("SENSOR : Read & Stop Measuring\n\r");
 
 	if (success == SENSOR_RESP_SINGLE) {
 		AppData.Buff[0] = 32;
@@ -511,8 +542,8 @@ static void MX_USART1_UART_Init(void)
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	/* USART1 interrupt Init */
-	HAL_NVIC_SetPriority(USART1_IRQn, 2, 0);
-	HAL_NVIC_EnableIRQ(USART1_IRQn);
+	// HAL_NVIC_SetPriority(USART1_IRQn, 2, 0);
+	// HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE BEGIN USART1_Init 0 */
 
   /* USER CODE END USART1_Init 0 */
