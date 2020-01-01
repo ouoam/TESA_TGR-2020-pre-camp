@@ -34,7 +34,7 @@
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            20000
+#define APP_TX_DUTYCYCLE                 5 * 60 * 1000         // 6 * 60 * 60 * 1000
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -238,26 +238,6 @@ int main(void)
 	vcom_ReceiveInit(RxCpltCallback);
 
 	/* USER CODE BEGIN 1 */
-	PRINTF("WAIT\n\r");
-	HW_RTC_DelayMs(2000);
-	MX_USART1_UART_Init();
-
-	do {
-		PRINTF("STOP\n\r");
-	} while (!SENSOR_Stop_Auto_Send());
-
-	SENSOR_Read_Measuring();
-
-	coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
-	PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
-	if ( coefficient < 30 || 200 < coefficient ) {
-		coefficient = 100;
-		writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
-	} else {
-		SENSOR_Set_Coefficient(coefficient);
-	}
-	SENSOR_Read_Coefficient();
-
 	/* USER CODE END 1 */
 
 	/*Disbale Stand-by mode*/
@@ -337,18 +317,43 @@ static void Send( void* context )
 
 	int success = 0;
 
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	/*Configure GPIO pin : PA4 */
+	GPIO_InitStruct.Pin = GPIO_PIN_4;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+
+	PRINTF("WAIT\n\r");
+	HW_RTC_DelayMs(2000);
 	MX_USART1_UART_Init();
 
-	SENSOR_Start_Measuring();
+	do {
+		PRINTF("STOP\n\r");
+	} while (!SENSOR_Stop_Auto_Send());
+
+	coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
+	PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+	if ( coefficient < 30 || 200 < coefficient ) {
+		coefficient = 100;
+		writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+	}
+	SENSOR_Set_Coefficient(coefficient);
+
 	PRINTF("SENSOR : Start Measuring\n\r");
 
 	HW_RTC_DelayMs(6000);
 
 	success = SENSOR_Read_Measuring();
-	SENSOR_Stop_Measuring();
 
 	__HAL_RCC_USART2_CLK_ENABLE();
 	HAL_GPIO_DeInit(GPIOA, SENSOR_RX_Pin|SENSOR_TX_Pin);
+
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 
 	PRINTF("SENSOR : Read & Stop Measuring\n\r");
 
