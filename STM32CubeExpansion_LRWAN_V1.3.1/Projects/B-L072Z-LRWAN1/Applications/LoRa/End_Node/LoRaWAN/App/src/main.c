@@ -67,6 +67,11 @@
  */
 static uint8_t AppDataBuff[LORAWAN_APP_DATA_BUFF_SIZE];
 
+#define SENSOR_TX_Pin GPIO_PIN_10
+#define SENSOR_TX_GPIO_Port GPIOA
+#define SENSOR_RX_Pin GPIO_PIN_9
+#define SENSOR_RX_GPIO_Port GPIOA
+
 #define SENSOR_RESP_UNKNOWN 0
 #define SENSOR_RESP_ACK 1
 #define SENSOR_RESP_NAK 2
@@ -297,9 +302,6 @@ int main(void)
 
 		ENABLE_IRQ();
 
-		PRINTNOW();
-		PRINTF("\n\r");
-
 		if (enterLoop) {
 			InfiniteLoop();
 		}
@@ -344,9 +346,13 @@ static void Send( void* context )
 
 	success = SENSOR_Read_Measuring();
 	SENSOR_Stop_Measuring();
+
+	__HAL_RCC_USART2_CLK_ENABLE();
+	HAL_GPIO_DeInit(GPIOA, SENSOR_RX_Pin|SENSOR_TX_Pin);
+
 	PRINTF("SENSOR : Read & Stop Measuring\n\r");
 
-	if (success == SENSOR_RESP_SINGLE) {
+	if (success) {
 		AppData.Buff[0] = 32;
 		AppData.Buff[1] = pm2_5 & 0xFF;
 		if (AppData.Buff[1] == 191) {
@@ -538,11 +544,6 @@ int SENSOR_Enable_Auto_Send() {
   * @param None
   * @retval None
   */
-
-#define SENSOR_TX_Pin GPIO_PIN_10
-#define SENSOR_TX_GPIO_Port GPIOA
-#define SENSOR_RX_Pin GPIO_PIN_9
-#define SENSOR_RX_GPIO_Port GPIOA
 
 static void MX_USART1_UART_Init(void)
 {
