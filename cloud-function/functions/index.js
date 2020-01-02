@@ -18,7 +18,7 @@ exports.loraReq = functions.https.onRequest((request, response) => {
   data = JSON.stringify(data);
 
   const options = {
-    hostname: "tgr2020-quiz.firebaseio.com",
+    hostname: "tgr2020-quiz2.firebaseio.com",
     path: "/quiz/location/team32.json",
     method: "POST",
     headers: {
