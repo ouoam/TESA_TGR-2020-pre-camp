@@ -324,7 +324,7 @@ static void LORA_HasJoined(void)
 static void Send( void* context )
 {
 	sendStack++;
-	PRINTF("\r\n");
+	if (enEngineer) PRINTF("\r\n");
 	if ( LORA_JoinStatus () != LORA_SET )
 	{
 		/*Not joined, try again later*/
@@ -345,14 +345,14 @@ static void Send( void* context )
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
-	PRINTF("SENSOR : WAIT for start\r\n");
+	if (enEngineer) PRINTF("SENSOR : WAIT for start\r\n");
 	HW_RTC_DelayMs(2000);
 	MX_USART1_UART_Init();
 
 	success = SENSOR_Parse_Resp() != SENSOR_RESP_TIMEOUT;
-	PRINTF("SENSOR : Get First\r\n");
+	if (enEngineer) PRINTF("SENSOR : Get First\r\n");
 	if (!success) {
-		PRINTF("SENSOR : try to enable auto send\r\n");
+		if (enEngineer) PRINTF("SENSOR : try to enable auto send\r\n");
 		success = SENSOR_Start_Measuring();
 		if (success) success = SENSOR_Enable_Auto_Send();
 		if (success) success = SENSOR_Parse_Resp(); // wait for first auto send
@@ -360,7 +360,7 @@ static void Send( void* context )
 
 	if (success) {
 		coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
-		PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+		if (enEngineer) PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
 		if ( coefficient < 30 || 200 < coefficient ) {
 			coefficient = 100;
 			writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
@@ -369,7 +369,7 @@ static void Send( void* context )
 	}
 
 	if (success) {
-		PRINTF("SENSOR : Start Measuring\r\n");
+		if (enEngineer) PRINTF("SENSOR : Start Measuring\r\n");
 
 		for (int i = 0; i < 6; i++) {
 			HW_RTC_DelayMs(800);
@@ -388,14 +388,14 @@ static void Send( void* context )
 			AppData.Buff[1] = 192;
 		}
 
-		PRINTF("SENSOR : Success Measuring %u\r\n", pm2_5);
+		if (enEngineer) PRINTF("SENSOR : Success Measuring %u\r\n", pm2_5);
 	} else if (sendStack < 3) {
-		PRINTF("SENSOR : ERROR and Try Again\r\n");
+		if (enEngineer) PRINTF("SENSOR : ERROR and Try Again\r\n");
 		HW_RTC_DelayMs(5000);
 		Send(NULL);
 		return; // don't send  send only at top of stack
 	} else {
-		PRINTF("SENSOR : ERROR\r\n");
+		if (enEngineer) PRINTF("SENSOR : ERROR\r\n");
 
 		AppData.Buff[0] = 32;
 		AppData.Buff[1] = 191;
