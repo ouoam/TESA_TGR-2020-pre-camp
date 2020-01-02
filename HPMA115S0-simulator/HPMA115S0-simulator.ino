@@ -1,4 +1,4 @@
-uint32_t nextAutoSend = 1800;
+uint32_t nextAutoSend = 1200;
 bool enableAutoSend = true;
 
 uint32_t nextMeasurement = 1750;
@@ -14,7 +14,6 @@ void setup() {
   randomSeed(analogRead(0));
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, enableMeasurement);
-  delay(1700);
 }
 
 void loop() {
