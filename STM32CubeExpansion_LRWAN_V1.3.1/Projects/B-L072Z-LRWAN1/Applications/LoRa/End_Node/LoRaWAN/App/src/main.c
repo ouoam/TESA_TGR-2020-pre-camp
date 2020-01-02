@@ -111,44 +111,7 @@ uint8_t enEngineer = false;
 
 uint8_t sendStack = 0;
 
-void RxCpltCallback(uint8_t *rxChar) {
-	if ( RxBuffI == 9 ) {
-		RxBuffI = 0;
-		PRINTF("Rx Buffer overflow\r\n");
-	}
-	RxBuff[RxBuffI++] = *rxChar;
-	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
-		if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
-			enEngineer = true;
-			PRINTF("Engineer mode enable\r\n");
-		} else if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
-			enEngineer = false;
-			PRINTF("Engineer mode disable\r\n");
-		}
-		if (enEngineer) {
-			if ( RxBuff[0] == 'G' ) {
-				coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
-				PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
-			} else if ( RxBuff[0] == 'S' ) {
-				uint8_t i = 1;
-				uint16_t temp = 0;
-				while ( RxBuff[i] != '\n' && RxBuff[i] != '\r' && RxBuff[i] != ' ' ) {
-					temp *= 10;
-					temp += (RxBuff[i] - '0') % 10;
-					i++;
-				}
-				if ( temp < 30 || 200 < temp ) {
-					PRINTF("COEFFICIENT out of range (only 30 - 200)\r\n");
-				} else {
-					PRINTF("Set COEFFICIENT to %u\r\n", temp);
-					coefficient = temp;
-					writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
-				}
-			}
-		}
-		RxBuffI = 0;
-	}
-}
+void RxCpltCallback(uint8_t *rxChar) ;
 
 void InfiniteLoop() {
 	PRINTF("\r\n\r\n!!!ENTER INFINITE LOOP!!!\r\n");
@@ -667,5 +630,46 @@ void writeToEEPROM (uint32_t address, uint32_t value)
 uint32_t readFromEEPROM (uint32_t address)
 {
 	return *( uint32_t *)address;
+}
+
+void RxCpltCallback(uint8_t *rxChar) {
+	if ( RxBuffI == 9 ) {
+		RxBuffI = 0;
+		PRINTF("Rx Buffer overflow\r\n");
+	}
+	RxBuff[RxBuffI++] = *rxChar;
+	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
+		if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+			enEngineer = true;
+			PRINTF("Engineer mode enable\r\n");
+		} else if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+			enEngineer = false;
+			PRINTF("Engineer mode disable\r\n");
+		}
+		if (enEngineer) {
+			if ( RxBuff[0] == 'G' ) {
+				coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
+				PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+			} else if ( RxBuff[0] == 'S' ) {
+				uint8_t i = 1;
+				uint16_t temp = 0;
+				while ( RxBuff[i] != '\n' && RxBuff[i] != '\r' && RxBuff[i] != ' ' ) {
+					temp *= 10;
+					temp += (RxBuff[i] - '0') % 10;
+					i++;
+				}
+				if ( temp < 30 || 200 < temp ) {
+					PRINTF("COEFFICIENT out of range (only 30 - 200)\r\n");
+				} else {
+					PRINTF("Set COEFFICIENT to %u\r\n", temp);
+					coefficient = temp;
+					writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+				}
+			} else if ( RxBuff[0] == 'T' ) {
+				Send(NULL);
+			}
+		}
+		RxBuffI = 0;
+	}
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
