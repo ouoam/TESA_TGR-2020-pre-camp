@@ -230,7 +230,7 @@ void LoraMacProcessNotify(void)
 static void LORA_HasJoined(void)
 {
 #if( OVER_THE_AIR_ACTIVATION != 0 )
-  PRINTF("JOINED\n\r");
+  PRINTF("JOINED\r\n");
 #endif
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
 }
@@ -251,7 +251,7 @@ static void Send(void *context)
     return;
   }
 
-  TVL1(PRINTF("SEND REQUEST\n\r");)
+  TVL1(PRINTF("SEND REQUEST\r\n");)
 #ifndef CAYENNE_LPP
   int32_t latitude, longitude = 0;
   uint16_t altitudeGps = 0;
@@ -271,7 +271,7 @@ static void Send(void *context)
 
 #ifdef CAYENNE_LPP
   uint8_t cchannel = 0;
-  temperature = (int16_t)(sensor_data.temperature * 10);         /* in °C * 10 */
+  temperature = (int16_t)(sensor_data.temperature * 10);         /* in ï¿½C * 10 */
   pressure    = (uint16_t)(sensor_data.pressure * 100 / 10);      /* in hPa / 10 */
   humidity    = (uint16_t)(sensor_data.humidity * 2);            /* in %*2     */
   uint32_t i = 0;
@@ -303,7 +303,7 @@ static void Send(void *context)
 #endif  /* REGION_XX915 */
 #else  /* not CAYENNE_LPP */
 
-  temperature = (int16_t)(sensor_data.temperature * 100);         /* in °C * 100 */
+  temperature = (int16_t)(sensor_data.temperature * 100);         /* in ï¿½C * 100 */
   pressure    = (uint16_t)(sensor_data.pressure * 100 / 10);      /* in hPa / 10 */
   humidity    = (uint16_t)(sensor_data.humidity * 10);            /* in %*10     */
   latitude = sensor_data.latitude;
@@ -356,7 +356,7 @@ static void Send(void *context)
 static void LORA_RxData(lora_AppData_t *AppData)
 {
   /* USER CODE BEGIN 4 */
-  PRINTF("PACKET RECEIVED ON PORT %d\n\r", AppData->Port);
+  PRINTF("PACKET RECEIVED ON PORT %d\r\n", AppData->Port);
 
   switch (AppData->Port)
   {
@@ -392,12 +392,12 @@ static void LORA_RxData(lora_AppData_t *AppData)
         AppLedStateOn = AppData->Buff[0] & 0x01;
         if (AppLedStateOn == RESET)
         {
-          PRINTF("LED OFF\n\r");
+          PRINTF("LED OFF\r\n");
           LED_Off(LED_BLUE) ;
         }
         else
         {
-          PRINTF("LED ON\n\r");
+          PRINTF("LED ON\r\n");
           LED_On(LED_BLUE) ;
         }
       }
@@ -407,13 +407,13 @@ static void LORA_RxData(lora_AppData_t *AppData)
       AppLedStateOn = (AppData->Buff[2] == 100) ?  0x01 : 0x00;
       if (AppLedStateOn == RESET)
       {
-        PRINTF("LED OFF\n\r");
+        PRINTF("LED OFF\r\n");
         LED_Off(LED_BLUE) ;
 
       }
       else
       {
-        PRINTF("LED ON\n\r");
+        PRINTF("LED ON\r\n");
         LED_On(LED_BLUE) ;
       }
       break;
@@ -457,7 +457,7 @@ static void LoraStartTx(TxEventType_t EventType)
 
 static void LORA_ConfirmClass(DeviceClass_t Class)
 {
-  PRINTF("switch to class %c done\n\r", "ABC"[Class]);
+  PRINTF("switch to class %c done\r\n", "ABC"[Class]);
 
   /*Optionnal*/
   /*informs the server that switch has occurred ASAP*/

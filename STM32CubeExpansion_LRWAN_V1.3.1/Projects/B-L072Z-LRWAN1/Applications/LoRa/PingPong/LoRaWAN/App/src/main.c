@@ -286,7 +286,7 @@ int main(void)
               {
                 Buffer[i] = i - 4;
               }
-              PRINTF("...PING\n\r");
+              PRINTF("...PING\r\n");
 
               DelayMs(1);
               Radio.Send(Buffer, BufferSize);
@@ -332,7 +332,7 @@ int main(void)
               DelayMs(1);
               Radio.Send(Buffer, BufferSize);
 
-              PRINTF("...PONG\n\r");
+              PRINTF("...PONG\r\n");
             }
             else // valid reception but not a PING as expected
             {
@@ -400,7 +400,7 @@ void OnTxDone(void)
 {
   Radio.Sleep();
   State = TX;
-  PRINTF("OnTxDone\n\r");
+  PRINTF("OnTxDone\r\n");
 }
 
 void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
@@ -412,8 +412,8 @@ void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
   SnrValue = snr;
   State = RX;
 
-  PRINTF("OnRxDone\n\r");
-  PRINTF("RssiValue=%d dBm, SnrValue=%d\n\r", rssi, snr);
+  PRINTF("OnRxDone\r\n");
+  PRINTF("RssiValue=%d dBm, SnrValue=%d\r\n", rssi, snr);
 }
 
 void OnTxTimeout(void)
@@ -421,21 +421,21 @@ void OnTxTimeout(void)
   Radio.Sleep();
   State = TX_TIMEOUT;
 
-  PRINTF("OnTxTimeout\n\r");
+  PRINTF("OnTxTimeout\r\n");
 }
 
 void OnRxTimeout(void)
 {
   Radio.Sleep();
   State = RX_TIMEOUT;
-  PRINTF("OnRxTimeout\n\r");
+  PRINTF("OnRxTimeout\r\n");
 }
 
 void OnRxError(void)
 {
   Radio.Sleep();
   State = RX_ERROR;
-  PRINTF("OnRxError\n\r");
+  PRINTF("OnRxError\r\n");
 }
 
 static void OnledEvent(void *context)

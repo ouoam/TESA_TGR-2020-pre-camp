@@ -76,7 +76,7 @@ void DBG_Init(void)
 
 void Error_Handler(void)
 {
-  PRINTF("Error_Handler\n\r");
+  PRINTF("Error_Handler\r\n");
   while (1)
   {
     ;

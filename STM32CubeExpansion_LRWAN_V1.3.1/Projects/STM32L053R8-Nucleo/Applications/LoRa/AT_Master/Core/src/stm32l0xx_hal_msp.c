@@ -80,7 +80,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
-    DBG_PRINTF("Error_Handler\n\r");
+    DBG_PRINTF("Error_Handler\r\n");
     while (1);
   }
 
@@ -89,7 +89,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
   PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
-    DBG_PRINTF("Error_Handler\n\r");
+    DBG_PRINTF("Error_Handler\r\n");
     while (1);
   }
 

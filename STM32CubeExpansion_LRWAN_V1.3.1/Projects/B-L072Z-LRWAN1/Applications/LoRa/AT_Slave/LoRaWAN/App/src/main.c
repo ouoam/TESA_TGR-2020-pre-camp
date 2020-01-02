@@ -130,7 +130,7 @@ int main(void)
   /*Disable standby mode*/
   LPM_SetOffMode(LPM_APPLI_Id, LPM_Disable);
 
-  PPRINTF("ATtention command interface\n\r");
+  PPRINTF("ATtention command interface\r\n");
   /* USER CODE END 1 */
 
   /* Configure the Lora Stack*/
@@ -190,17 +190,17 @@ void LoraMacProcessNotify(void)
 
 static void LORA_HasJoined(void)
 {
-  PRINTF("JOINED\n\r");
+  PRINTF("JOINED\r\n");
 }
 
 static void LORA_ConfirmClass(DeviceClass_t Class)
 {
-  PRINTF("switch to class %c done\n\r", "ABC"[Class]);
+  PRINTF("switch to class %c done\r\n", "ABC"[Class]);
 }
 
 static void LORA_TxNeeded(void)
 {
-  PRINTF("Network Server is asking for an uplink transmission\n\r");
+  PRINTF("Network Server is asking for an uplink transmission\r\n");
 }
 
 /**
@@ -235,7 +235,7 @@ uint8_t LORA_GetBatteryLevel(void)
 
 static void LORA_McpsDataConfirm(void)
 {
-  PRINTF("Network Server \"ack\" an uplink data confirmed message transmission\n\r");
+  PRINTF("Network Server \"ack\" an uplink data confirmed message transmission\r\n");
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

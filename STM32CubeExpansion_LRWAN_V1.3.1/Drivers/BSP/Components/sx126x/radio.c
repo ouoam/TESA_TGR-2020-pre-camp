@@ -862,7 +862,7 @@ void RadioSetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
             break;
     }
 
-    // WORKAROUND - Modulation Quality with 500 kHz LoRa® Bandwidth, see DS_SX1261-2_V1.2 datasheet chapter 15.1
+    // WORKAROUND - Modulation Quality with 500 kHz LoRaï¿½ Bandwidth, see DS_SX1261-2_V1.2 datasheet chapter 15.1
     if( ( modem == MODEM_LORA ) && ( SX126x.ModulationParams.Params.LoRa.Bandwidth == LORA_BW_500 ) )
     {
         // RegTxModulation = @address 0x0889
@@ -1235,17 +1235,17 @@ void RadioIrqProcess( void )
 
         if( ( irqRegs & IRQ_PREAMBLE_DETECTED ) == IRQ_PREAMBLE_DETECTED )
         {
-            TVL2( PRINTF("PHY PRE OK\n\r" );)
+            TVL2( PRINTF("PHY PRE OK\r\n" );)
         }
 
         if( ( irqRegs & IRQ_SYNCWORD_VALID ) == IRQ_SYNCWORD_VALID )
         {
-            TVL2( PRINTF("PHY SYNC OK\n\r" );)
+            TVL2( PRINTF("PHY SYNC OK\r\n" );)
         }
 
         if( ( irqRegs & IRQ_HEADER_VALID ) == IRQ_HEADER_VALID )
         {
-            TVL2( PRINTF("PHY HDR OK\n\r" );)
+            TVL2( PRINTF("PHY HDR OK\r\n" );)
         }
 
         if( ( irqRegs & IRQ_HEADER_ERROR ) == IRQ_HEADER_ERROR )
@@ -1259,7 +1259,7 @@ void RadioIrqProcess( void )
             if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
             {
                 RadioEvents->RxTimeout( );
-                TVL2( PRINTF("PHY HDR KO\n\r" );)
+                TVL2( PRINTF("PHY HDR KO\r\n" );)
                 SX126xBoardSetLedRx(false);
             }
         }

@@ -396,11 +396,11 @@ static void MlmeIndication(MlmeIndication_t *MlmeIndication)
     {
       if (MlmeIndication->Status == LORAMAC_EVENT_INFO_STATUS_BEACON_LOCKED)
       {
-        TVL2(PRINTF("BEACON RECEIVED\n\r");)
+        TVL2(PRINTF("BEACON RECEIVED\r\n");)
       }
       else
       {
-        TVL2(PRINTF("BEACON NOT RECEIVED\n\r");)
+        TVL2(PRINTF("BEACON NOT RECEIVED\r\n");)
       }
       break;
 
@@ -747,7 +747,7 @@ LoraErrorStatus LORA_RequestClass(DeviceClass_t newClass)
         /*switch is not instantanuous*/
         Errorstatus = LORA_BeaconReq();
 #else
-        PRINTF("warning: LORAMAC_CLASSB_ENABLED has not been defined at compilation\n\r");
+        PRINTF("warning: LORAMAC_CLASSB_ENABLED has not been defined at compilation\r\n");
 #endif /* LORAMAC_CLASSB_ENABLED */
         break;
       }
@@ -793,10 +793,10 @@ void lora_config_otaa_set(LoraState_t otaa)
 
   if (lora_config.otaa == LORA_ENABLE)
   {
-    PPRINTF("OTAA Mode enabled\n\r");
-    PPRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(lora_config.DevEui));
-    PPRINTF("JoinEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(lora_config.JoinEui));
-    PPRINTF("AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(lora_config.AppKey));
+    PPRINTF("OTAA Mode enabled\r\n");
+    PPRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(lora_config.DevEui));
+    PPRINTF("JoinEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(lora_config.JoinEui));
+    PPRINTF("AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(lora_config.AppKey));
 
     mibReq.Type = MIB_NETWORK_ACTIVATION;
     mibReq.Param.NetworkActivation = ACTIVATION_TYPE_NONE;
@@ -804,11 +804,11 @@ void lora_config_otaa_set(LoraState_t otaa)
   }
   else
   {
-    PPRINTF("ABP Mode enabled\n\r");
-    PPRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(lora_config.DevEui));
-    PPRINTF("DevAdd=  %08X\n\r", DevAddr) ;
-    PPRINTF("NwkSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(lora_config.NwkSEncKey));
-    PPRINTF("AppSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(lora_config.AppSKey));
+    PPRINTF("ABP Mode enabled\r\n");
+    PPRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(lora_config.DevEui));
+    PPRINTF("DevAdd=  %08X\r\n", DevAddr) ;
+    PPRINTF("NwkSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(lora_config.NwkSEncKey));
+    PPRINTF("AppSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(lora_config.AppSKey));
 
     mibReq.Type = MIB_NET_ID;
     mibReq.Param.NetID = LORAWAN_NETWORK_ID;

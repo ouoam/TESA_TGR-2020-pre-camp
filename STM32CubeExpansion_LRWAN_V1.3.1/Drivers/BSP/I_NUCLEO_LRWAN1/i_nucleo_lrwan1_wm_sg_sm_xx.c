@@ -274,7 +274,7 @@ ATEerror_t  Modem_AT_Cmd(ATGroup_t at_group, ATCmd_t Cmd, void *pdata)
       }
     }
     default:
-      DBG_PRINTF("unknow group\n\r");
+      DBG_PRINTF("unknow group\r\n");
       break;
 
   } /*end switch(at_group)*/
@@ -479,7 +479,7 @@ static uint8_t at_cmd_format(ATCmd_t Cmd, void *ptr, Marker_t Marker)
     }
     default:
       len = AT_VPRINTF("%s%s%s", AT_HEADER, CmdTab[Cmd], AT_TAIL);
-      DBG_PRINTF("format not yet supported \n\r");
+      DBG_PRINTF("format not yet supported \r\n");
       break;
   } /*end switch(cmd)*/
   return len;

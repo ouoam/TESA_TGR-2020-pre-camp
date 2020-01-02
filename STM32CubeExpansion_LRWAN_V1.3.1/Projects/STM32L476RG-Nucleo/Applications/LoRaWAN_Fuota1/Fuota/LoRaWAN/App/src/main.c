@@ -379,7 +379,7 @@ int main(void)
 
   LmHandlerPackageRegister(PACKAGE_ID_FRAGMENTATION, &FragmentationParams);
 
-  PRINTF("\n\rTAG to VALIDATE new FW upgrade %d\n\r", __APP_VERSION_RC);
+  PRINTF("\r\nTAG to VALIDATE new FW upgrade %d\r\n", __APP_VERSION_RC);
 
 
   IsClockSynched = false;
@@ -433,7 +433,7 @@ static void LORA_RxData(LmHandlerAppData_t *AppData, LmHandlerRxParams_t *params
   }
 
   /* USER CODE BEGIN 4 */
-  PRINTF("PACKET RECEIVED ON PORT %d\n\r", AppData->Port);
+  PRINTF("PACKET RECEIVED ON PORT %d\r\n", AppData->Port);
 
   switch (AppData->Port)
   {
@@ -469,12 +469,12 @@ static void LORA_RxData(LmHandlerAppData_t *AppData, LmHandlerRxParams_t *params
         AppLedStateOn = AppData->Buffer[0] & 0x01;
         if (AppLedStateOn == RESET)
         {
-          PRINTF("LED OFF\n\r");
+          PRINTF("LED OFF\r\n");
           LED_Off(LED_BLUE) ;
         }
         else
         {
-          PRINTF("LED ON\n\r");
+          PRINTF("LED ON\r\n");
           LED_On(LED_BLUE) ;
         }
       }
@@ -484,13 +484,13 @@ static void LORA_RxData(LmHandlerAppData_t *AppData, LmHandlerRxParams_t *params
       AppLedStateOn = (AppData->Buffer[2] == 100) ?  0x01 : 0x00;
       if (AppLedStateOn == RESET)
       {
-        PRINTF("LED OFF\n\r");
+        PRINTF("LED OFF\r\n");
         LED_Off(LED_BLUE) ;
 
       }
       else
       {
-        PRINTF("LED ON\n\r");
+        PRINTF("LED ON\r\n");
         LED_On(LED_BLUE) ;
       }
       break;
@@ -721,7 +721,7 @@ static void UplinkProcess(void)
       {
         /* The fragmented transport layer V1.0 doesn't specify any behavior*/
         /* we keep the interop test behavior - CRC32 is returned to the server*/
-        PRINTF(" CRC send \n\r");
+        PRINTF(" CRC send \r\n");
       }
     }
     /* send application frame - could be put in conditional compilation*/
@@ -839,17 +839,17 @@ static void OnNetworkParametersChange(CommissioningParams_t *params)
 
   PRINTF("OnNwkParamsUpdate\r\n");
 
-  PRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", params->DevEui[0], params->DevEui[1],
+  PRINTF("DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", params->DevEui[0], params->DevEui[1],
          params->DevEui[2], params->DevEui[3],
          params->DevEui[4], params->DevEui[5],
          params->DevEui[6], params->DevEui[7]);
 
-  PRINTF("AppEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", params->JoinEui[0], params->JoinEui[1],
+  PRINTF("AppEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", params->JoinEui[0], params->JoinEui[1],
          params->JoinEui[2], params->JoinEui[3],
          params->JoinEui[4], params->JoinEui[5],
          params->JoinEui[6], params->JoinEui[7]);
 
-  PRINTF("AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r",
+  PRINTF("AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
          params->NwkKey[0], params->NwkKey[1],
          params->NwkKey[2], params->NwkKey[3],
          params->NwkKey[4], params->NwkKey[5],
@@ -859,7 +859,7 @@ static void OnNetworkParametersChange(CommissioningParams_t *params)
          params->NwkKey[12], params->NwkKey[13],
          params->NwkKey[14], params->NwkKey[15]);
 
-  PRINTF("GenAppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r",
+  PRINTF("GenAppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
          params->GenAppKey[0], params->GenAppKey[1],
          params->GenAppKey[2], params->GenAppKey[3],
          params->GenAppKey[4], params->GenAppKey[5],

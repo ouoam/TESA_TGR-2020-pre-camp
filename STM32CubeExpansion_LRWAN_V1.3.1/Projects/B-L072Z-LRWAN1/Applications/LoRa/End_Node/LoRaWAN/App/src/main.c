@@ -105,35 +105,45 @@ uint16_t pm2_5 = -1;
 uint16_t pm10 = -1;
 uint8_t coefficient = 100;
 
-uint8_t RxBuff[5];
+uint8_t RxBuff[9];
 uint8_t RxBuffI = 0;
+uint8_t enEngineer = false;
 
 uint8_t sendStack = 0;
 
 void RxCpltCallback(uint8_t *rxChar) {
-	if ( RxBuffI == 5 ) {
+	if ( RxBuffI == 9 ) {
 		RxBuffI = 0;
 		PRINTF("Rx Buffer overflow\r\n");
 	}
 	RxBuff[RxBuffI++] = *rxChar;
 	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
-		if ( RxBuff[0] == 'G' ) {
-			coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
-			PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
-		} else if ( RxBuff[0] == 'S' ) {
-			uint8_t i = 1;
-			uint16_t temp = 0;
-			while ( RxBuff[i] != '\n' && RxBuff[i] != '\r' && RxBuff[i] != ' ' ) {
-				temp *= 10;
-				temp += (RxBuff[i] - '0') % 10;
-				i++;
-			}
-			if ( temp < 30 || 200 < temp ) {
-				PRINTF("COEFFICIENT out of range (only 30 - 200)\r\n");
-			} else {
-				PRINTF("Set COEFFICIENT to %u\r\n", temp);
-				coefficient = temp;
-				writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+		if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+			enEngineer = true;
+			PRINTF("Engineer mode enable\r\n");
+		} else if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+			enEngineer = false;
+			PRINTF("Engineer mode disable\r\n");
+		}
+		if (enEngineer) {
+			if ( RxBuff[0] == 'G' ) {
+				coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
+				PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
+			} else if ( RxBuff[0] == 'S' ) {
+				uint8_t i = 1;
+				uint16_t temp = 0;
+				while ( RxBuff[i] != '\n' && RxBuff[i] != '\r' && RxBuff[i] != ' ' ) {
+					temp *= 10;
+					temp += (RxBuff[i] - '0') % 10;
+					i++;
+				}
+				if ( temp < 30 || 200 < temp ) {
+					PRINTF("COEFFICIENT out of range (only 30 - 200)\r\n");
+				} else {
+					PRINTF("Set COEFFICIENT to %u\r\n", temp);
+					coefficient = temp;
+					writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
+				}
 			}
 		}
 		RxBuffI = 0;
@@ -144,7 +154,7 @@ void InfiniteLoop() {
 	PRINTF("\r\n\r\n!!!ENTER INFINITE LOOP!!!\r\n");
 	HW_RTC_DelayMs(500);
 	DISABLE_IRQ();
-	while(1);
+	while(1) __NOP();
 }
 
 uint8_t enterLoop = 0;
@@ -306,7 +316,7 @@ void LoraMacProcessNotify(void)
 static void LORA_HasJoined(void)
 {
 #if( OVER_THE_AIR_ACTIVATION != 0 )
-  PRINTF("JOINED\n\r");
+  PRINTF("JOINED\r\n");
 #endif
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
 }
@@ -314,7 +324,7 @@ static void LORA_HasJoined(void)
 static void Send( void* context )
 {
 	sendStack++;
-	PRINTF("\n\r");
+	PRINTF("\r\n");
 	if ( LORA_JoinStatus () != LORA_SET )
 	{
 		/*Not joined, try again later*/
@@ -335,14 +345,14 @@ static void Send( void* context )
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
-	PRINTF("SENSOR : WAIT for start\n\r");
+	PRINTF("SENSOR : WAIT for start\r\n");
 	HW_RTC_DelayMs(2000);
 	MX_USART1_UART_Init();
 
 	success = SENSOR_Parse_Resp() != SENSOR_RESP_TIMEOUT;
-	PRINTF("SENSOR : Get First\n\r");
+	PRINTF("SENSOR : Get First\r\n");
 	if (!success) {
-		PRINTF("SENSOR : try to enable auto send\n\r");
+		PRINTF("SENSOR : try to enable auto send\r\n");
 		success = SENSOR_Start_Measuring();
 		if (success) success = SENSOR_Enable_Auto_Send();
 		if (success) success = SENSOR_Parse_Resp(); // wait for first auto send
@@ -350,7 +360,7 @@ static void Send( void* context )
 
 	if (success) {
 		coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
-		PRINTF("EEPROM COEFFICIENT = %d\n\r", coefficient);
+		PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
 		if ( coefficient < 30 || 200 < coefficient ) {
 			coefficient = 100;
 			writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
@@ -359,7 +369,7 @@ static void Send( void* context )
 	}
 
 	if (success) {
-		PRINTF("SENSOR : Start Measuring\n\r");
+		PRINTF("SENSOR : Start Measuring\r\n");
 
 		for (int i = 0; i < 6; i++) {
 			HW_RTC_DelayMs(800);
@@ -378,14 +388,14 @@ static void Send( void* context )
 			AppData.Buff[1] = 192;
 		}
 
-		PRINTF("SENSOR : Success Measuring %u\n\r", pm2_5);
+		PRINTF("SENSOR : Success Measuring %u\r\n", pm2_5);
 	} else if (sendStack < 3) {
-		PRINTF("SENSOR : ERROR and Try Again\n\r");
+		PRINTF("SENSOR : ERROR and Try Again\r\n");
 		HW_RTC_DelayMs(5000);
 		Send(NULL);
 		return; // don't send  send only at top of stack
 	} else {
-		PRINTF("SENSOR : ERROR\n\r");
+		PRINTF("SENSOR : ERROR\r\n");
 
 		AppData.Buff[0] = 32;
 		AppData.Buff[1] = 191;
@@ -404,7 +414,7 @@ static void Send( void* context )
 static void LORA_RxData(lora_AppData_t *AppData)
 {
   /* USER CODE BEGIN 4 */
-  PRINTF("PACKET RECEIVED ON PORT %d\n\r", AppData->Port);
+  PRINTF("PACKET RECEIVED ON PORT %d\r\n", AppData->Port);
   /* USER CODE END 4 */
 }
 
@@ -441,7 +451,7 @@ static void LoraStartTx(TxEventType_t EventType)
 
 static void LORA_ConfirmClass(DeviceClass_t Class)
 {
-  PRINTF("switch to class %c done\n\r", "ABC"[Class]);
+  PRINTF("switch to class %c done\r\n", "ABC"[Class]);
 
   /*Optionnal*/
   /*informs the server that switch has occurred ASAP*/
@@ -533,10 +543,7 @@ int SENSOR_Parse_Resp() {
 	} else { // clear
 		HAL_UART_Receive(&huart1, &respBuf[2], 38, 200);
 	}
-	for (int i = 0; i < 32; i++) {
-		PRINTF("%c", respBuf[i]);
-	}
-	PRINTF("\n\r");
+
 	return SENSOR_RESP_UNKNOWN;
 }
 

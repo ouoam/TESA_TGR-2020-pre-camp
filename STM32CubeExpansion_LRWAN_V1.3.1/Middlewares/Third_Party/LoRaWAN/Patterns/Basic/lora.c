@@ -420,7 +420,7 @@ static void MlmeIndication( MlmeIndication_t *MlmeIndication )
             }
             else
             {
-              TVL2( PRINTF( "BEACON NOT RECEIVED\n\r");)
+              TVL2( PRINTF( "BEACON NOT RECEIVED\r\n");)
             }
             break;
 
@@ -450,10 +450,10 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   
 #if( OVER_THE_AIR_ACTIVATION != 0 )
 
-  PPRINTF( "OTAA\n\r"); 
-  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(devEui));
-  PPRINTF( "AppEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(joinEui));
-  PPRINTF( "AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(AppKey));
+  PPRINTF( "OTAA\r\n"); 
+  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(devEui));
+  PPRINTF( "AppEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(joinEui));
+  PPRINTF( "AppKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(AppKey));
 #else
 
 #if (STATIC_DEVICE_ADDRESS != 1)
@@ -462,11 +462,11 @@ void LORA_Init (LoRaMainCallback_t *callbacks, LoRaParam_t* LoRaParam )
   // Choose a random device address
   DevAddr = randr( 0, 0x01FFFFFF );
 #endif
-  PPRINTF( "ABP\n\r"); 
-  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\n\r", HEX8(devEui));
-  PPRINTF( "DevAdd=  %08X\n\r", DevAddr) ;
-  PPRINTF( "NwkSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(NwkSEncKey));
-  PPRINTF( "AppSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n\r", HEX16(AppSKey));
+  PPRINTF( "ABP\r\n"); 
+  PPRINTF( "DevEui= %02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X\r\n", HEX8(devEui));
+  PPRINTF( "DevAdd=  %08X\r\n", DevAddr) ;
+  PPRINTF( "NwkSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(NwkSEncKey));
+  PPRINTF( "AppSKey= %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\r\n", HEX16(AppSKey));
 #endif
   LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
   LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
@@ -796,7 +796,7 @@ LoraErrorStatus LORA_RequestClass( DeviceClass_t newClass )
         /*switch is not instantanuous*/
         Errorstatus = LORA_BeaconReq( );
 #else
-        PRINTF( "warning: LORAMAC_CLASSB_ENABLED has not been defined at compilation\n\r");
+        PRINTF( "warning: LORAMAC_CLASSB_ENABLED has not been defined at compilation\r\n");
 #endif /* LORAMAC_CLASSB_ENABLED */
         break;
       }

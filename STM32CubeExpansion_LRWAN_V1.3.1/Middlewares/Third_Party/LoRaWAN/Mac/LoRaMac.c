@@ -803,7 +803,7 @@ static void OnRadioTxDone( void )
         MacCtx.MacCallbacks->MacProcessNotify( );
     }
 #if !defined(NO_MAC_PRINTF)
-    PRINTNOW(); PRINTF("PHY txDone\n\r" );
+    PRINTNOW(); PRINTF("PHY txDone\r\n" );
 #endif
 }
 
@@ -822,8 +822,8 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
         MacCtx.MacCallbacks->MacProcessNotify( );
     }
 #if !defined(NO_MAC_PRINTF)
-    PRINTNOW(); PRINTF("PHY rxDone\n\r" );
-	PRINTF("RssiValue=%d dBm, SnrValue=%d\n\r", rssi, snr);
+    PRINTNOW(); PRINTF("PHY rxDone\r\n" );
+	PRINTF("RssiValue=%d dBm, SnrValue=%d\r\n", rssi, snr);
 #endif
 }
 
@@ -836,7 +836,7 @@ static void OnRadioTxTimeout( void )
         MacCtx.MacCallbacks->MacProcessNotify( );
     }
 #if !defined(NO_MAC_PRINTF)
-    PRINTNOW(); PRINTF("PHY txTimeOut\n\r" );
+    PRINTNOW(); PRINTF("PHY txTimeOut\r\n" );
 #endif
 }
 
@@ -859,7 +859,7 @@ static void OnRadioRxTimeout( void )
         MacCtx.MacCallbacks->MacProcessNotify( );
     }
 #if !defined(NO_MAC_PRINTF)
-    PRINTNOW(); PRINTF("PHY rxTimeOut\n\r" );
+    PRINTNOW(); PRINTF("PHY rxTimeOut\r\n" );
 #endif
 }
 

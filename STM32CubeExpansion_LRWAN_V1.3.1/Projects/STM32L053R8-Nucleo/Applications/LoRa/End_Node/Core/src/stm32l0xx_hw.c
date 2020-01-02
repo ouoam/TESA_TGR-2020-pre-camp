@@ -267,7 +267,7 @@ uint16_t HW_GetTemperatureLevel(void)
     batteryLevelmV = (((uint32_t) VDDA_VREFINT_CAL * (*VREFINT_CAL)) / measuredLevel);
   }
 #if 0
-  PRINTF("VDDA= %d\n\r", batteryLevelmV);
+  PRINTF("VDDA= %d\r\n", batteryLevelmV);
 #endif
 
   measuredLevel = HW_AdcReadChannel(ADC_CHANNEL_TEMPSENSOR);
@@ -278,7 +278,7 @@ uint16_t HW_GetTemperatureLevel(void)
   {
     uint16_t temperatureDegreeC_Int = (temperatureDegreeC) >> 8;
     uint16_t temperatureDegreeC_Frac = ((temperatureDegreeC - (temperatureDegreeC_Int << 8)) * 100) >> 8;
-    PRINTF("temp= %d, %d,%d\n\r", temperatureDegreeC, temperatureDegreeC_Int, temperatureDegreeC_Frac);
+    PRINTF("temp= %d, %d,%d\r\n", temperatureDegreeC, temperatureDegreeC_Int, temperatureDegreeC_Frac);
   }
 #endif
 

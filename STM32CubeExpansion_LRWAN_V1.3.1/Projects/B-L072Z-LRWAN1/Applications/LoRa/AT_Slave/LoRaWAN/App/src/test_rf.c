@@ -431,7 +431,7 @@ ATEerror_t TST_TX_LoraStart(const char *buf, unsigned bufSize)
 
     TestState |= TX_TEST_LORA;
 
-    PRINTF("\nTx LoRa Test\n\r");
+    PRINTF("\nTx LoRa Test\r\n");
 
     /* Radio initialization */
     RadioEvents.TxDone = OnTxDone;
@@ -594,7 +594,7 @@ void OnTxDone(void)
   /* Set TXdone flag */
   RadioTXDone_flag = 1;
 
-  PRINTF("OnTxDone\n\r");
+  PRINTF("OnTxDone\r\n");
 }
 
 void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
@@ -607,7 +607,7 @@ void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
   RadioRXDone_flag = 1;
 
   PRINTF("OnRxDone\r\n");
-  PRINTF("RssiValue=%d dBm, SnrValue=%d\n\r", rssi, snr);
+  PRINTF("RssiValue=%d dBm, SnrValue=%d\r\n", rssi, snr);
 }
 
 void OnTxTimeout(void)
