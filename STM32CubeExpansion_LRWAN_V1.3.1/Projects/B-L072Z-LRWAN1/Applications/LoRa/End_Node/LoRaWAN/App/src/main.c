@@ -34,7 +34,7 @@
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                 5 * 60 * 1000         // 6 * 60 * 60 * 1000
+#define APP_TX_DUTYCYCLE                 5 * 60 * 1000         // 4 * 60 * 60 * 1000
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -182,6 +182,7 @@ LoraFlagStatus AppProcessRequest = LORA_RESET;
 
 static TimerEvent_t TxTimer;
 static TimerEvent_t IwdgTimer;
+static TimerEvent_t EngineerTimer;
 
 /* !
  *Initialises the Lora Parameters
@@ -196,6 +197,11 @@ uint8_t isIWDGrefresh = 0;
 void IWDG_Refresh(void *context) {
 	TimerStart(&IwdgTimer);
 	isIWDGrefresh = 1;
+}
+
+void EngineerTimerStop(void *context) {
+	PRINTF("Engineer mode disable\r\n");
+	enEngineer = 0;
 }
 
 /* Private functions ---------------------------------------------------------*/
@@ -222,8 +228,25 @@ int main(void)
 	vcom_ReceiveInit(RxCpltCallback);
 
 	/* USER CODE BEGIN 1 */
-	enEngineer = readFromEEPROM(ENGINEER_MODE_ADDR);
-	if (enEngineer) PRINTF("\r\n\r\n !! !! ENGINEER MODE IS ENABLE !! !!\r\n\r\n\r\n");
+	TimerInit(&EngineerTimer, EngineerTimerStop);
+	TimerSetValue(&EngineerTimer,  30 * 1000);
+
+	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
+	if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET) {
+		HW_RTC_DelayMs(200);
+		if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET) {
+			HW_RTC_DelayMs(1000);
+			if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_SET) {
+				PRINTF("\r\n\r\nEnter Engineer Mode for 30s\r\n\r\n\r\n");
+				enEngineer = 1;
+				TimerStart(&EngineerTimer);
+			}
+		}
+	}
+	if (!enEngineer) {
+		enEngineer = readFromEEPROM(ENGINEER_MODE_ADDR);
+		if (enEngineer) PRINTF("\r\n\r\n !! !! ENGINEER MODE IS ENABLE !! !!\r\n\r\n\r\n");
+	}
 	/* USER CODE END 1 */
 
 	/*Disbale Stand-by mode*/
@@ -713,17 +736,12 @@ void RxCpltCallback(uint8_t *rxChar) {
 	}
 	RxBuff[RxBuffI++] = *rxChar;
 	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
-		if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
-			enEngineer = true;
-			writeToEEPROM(ENGINEER_MODE_ADDR, 1);
-			PRINTF("Engineer mode enable\r\n");
-		} else if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
-			enEngineer = false;
-			writeToEEPROM(ENGINEER_MODE_ADDR, 0);
-			PRINTF("Engineer mode disable\r\n");
-		}
 		if (enEngineer) {
-			if ( RxBuff[0] == 'G' ) {
+			if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+				enEngineer = false;
+				writeToEEPROM(ENGINEER_MODE_ADDR, 0);
+				PRINTF("Engineer mode disable\r\n");
+			} else if ( RxBuff[0] == 'G' ) {
 				coefficient = readFromEEPROM(SENSOR_COEFF_ADDR);
 				PRINTF("EEPROM COEFFICIENT = %d\r\n", coefficient);
 			} else if ( RxBuff[0] == 'S' ) {
@@ -756,6 +774,10 @@ void RxCpltCallback(uint8_t *rxChar) {
 				PRINTF("T    : Transmit Lora with sensor value\r\n");
 				PRINTF("M    : Measure PM2.5\r\n");
 			}
+		} else if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
+			enEngineer = true;
+			writeToEEPROM(ENGINEER_MODE_ADDR, 1);
+			PRINTF("Engineer mode enable\r\n");
 		}
 		RxBuffI = 0;
 	}
