@@ -338,8 +338,14 @@ static void Send( void* context )
 		}
 	}
 
-	__HAL_RCC_USART2_CLK_ENABLE();
-	HAL_GPIO_DeInit(GPIOA, SENSOR_RX_Pin|SENSOR_TX_Pin);
+	HAL_UART_DeInit(&huart1);
+
+	__HAL_RCC_USART1_CLK_DISABLE();
+	GPIO_InitStruct.Pin = SENSOR_TX_Pin|SENSOR_RX_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 
 	if (success) {
@@ -569,7 +575,7 @@ static void MX_USART1_UART_Init(void)
 	GPIO_InitStruct.Pin = SENSOR_TX_Pin|SENSOR_RX_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF4_USART1;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
