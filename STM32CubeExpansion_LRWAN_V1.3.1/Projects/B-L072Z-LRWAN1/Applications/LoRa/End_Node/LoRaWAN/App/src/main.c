@@ -194,7 +194,6 @@ static  LoRaParam_t LoRaParamInit = {LORAWAN_ADR_STATE,
 uint8_t isIWDGrefresh = 0;
 
 void IWDG_Refresh(void *context) {
-
 	TimerStart(&IwdgTimer);
 	isIWDGrefresh = 1;
 }
@@ -304,19 +303,7 @@ static void LORA_HasJoined(void)
   LORA_RequestClass(LORAWAN_DEFAULT_CLASS);
 }
 
-static void Send( void* context )
-{
-	HAL_IWDG_Refresh(&hiwdg);
-
-	sendStack++;
-	if (enEngineer) PRINTF("\r\n");
-	if ( LORA_JoinStatus () != LORA_SET )
-	{
-		/*Not joined, try again later*/
-		LORA_Join();
-		return;
-	}
-
+int getSensorValue() {
 	int success = 0;
 
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -376,7 +363,24 @@ static void Send( void* context )
 
 	HAL_IWDG_Refresh(&hiwdg);
 
-	if (success) {
+	return success;
+}
+
+static void Send( void* context )
+{
+	HAL_IWDG_Refresh(&hiwdg);
+
+	if ( sendStack == 0 && LORA_JoinStatus () != LORA_SET )
+	{
+		/*Not joined, try again later*/
+		LORA_Join();
+		return;
+	}
+
+	sendStack++;
+	if (enEngineer) PRINTF("\r\n");
+
+	if (getSensorValue()) {
 		AppData.Buff[0] = 32;
 		AppData.Buff[1] = pm2_5 & 0xFF;
 		if (AppData.Buff[1] == 191) {
@@ -388,6 +392,7 @@ static void Send( void* context )
 		if (enEngineer) PRINTF("SENSOR : ERROR and Try Again\r\n");
 		HW_RTC_DelayMs(5000);
 		Send(NULL);
+		sendStack--;
 		return; // don't send  send only at top of stack
 	} else {
 		if (enEngineer) PRINTF("SENSOR : ERROR\r\n");
@@ -402,6 +407,7 @@ static void Send( void* context )
 
 	//Send to LoRaWAN
 	LORA_send( &AppData, LORAWAN_DEFAULT_CONFIRM_MSG_STATE );
+	sendStack--;
   /* USER CODE END 3 */
 }
 
@@ -737,6 +743,12 @@ void RxCpltCallback(uint8_t *rxChar) {
 				}
 			} else if ( RxBuff[0] == 'T' ) {
 				Send(NULL);
+			} else if ( RxBuff[0] == 'M') {
+				if (getSensorValue()) {
+					PRINTF("SENSOR : Success Measuring %u\r\n", pm2_5);
+				} else {
+					PRINTF("SENSOR : ERROR\r\n");
+				}
 			}
 		}
 		RxBuffI = 0;
