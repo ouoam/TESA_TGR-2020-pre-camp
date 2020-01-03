@@ -91,7 +91,7 @@ extern "C" {
 
 /* --------Preprocessor compile swicth------------ */
 /* debug swicth in debug.h */
-#define DEBUG
+//#define DEBUG
 
 /* uncomment below line to never enter lowpower modes in main.c*/
 //#define LOW_POWER_DISABLE
