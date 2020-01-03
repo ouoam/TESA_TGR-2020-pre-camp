@@ -87,6 +87,11 @@
 			<locationURI>copy_PARENT1/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_gpio.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32L0xx_HAL_Driver/stm32l0xx_hal_iwdg.c</name>
+			<type>1</type>
+			<locationURI>copy_PARENT1/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_iwdg.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32L0xx_HAL_Driver/stm32l0xx_hal_pwr.c</name>
 			<type>1</type>
 			<locationURI>copy_PARENT1/Drivers/STM32L0xx_HAL_Driver/Src/stm32l0xx_hal_pwr.c</locationURI>

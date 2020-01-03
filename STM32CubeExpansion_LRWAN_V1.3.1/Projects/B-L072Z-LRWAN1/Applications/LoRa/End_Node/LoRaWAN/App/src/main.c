@@ -124,6 +124,8 @@ void InfiniteLoop1() {
 
 UART_HandleTypeDef huart1;
 
+IWDG_HandleTypeDef hiwdg;
+
 /*!
  * User application data structure
  */
@@ -161,6 +163,7 @@ static void OnTxTimerEvent(void *context);
 static void LoraMacProcessNotify(void);
 
 static void MX_USART1_UART_Init(void);
+static void MX_IWDG_Init(void);
 
 /* Private variables ---------------------------------------------------------*/
 /* load Main call backs structure*/
@@ -178,6 +181,7 @@ LoraFlagStatus LoraMacProcessRequest = LORA_RESET;
 LoraFlagStatus AppProcessRequest = LORA_RESET;
 
 static TimerEvent_t TxTimer;
+static TimerEvent_t IwdgTimer;
 
 /* !
  *Initialises the Lora Parameters
@@ -186,6 +190,14 @@ static  LoRaParam_t LoRaParamInit = {LORAWAN_ADR_STATE,
                                      LORAWAN_DEFAULT_DATA_RATE,
                                      LORAWAN_PUBLIC_NETWORK
                                     };
+
+uint8_t isIWDGrefresh = 0;
+
+void IWDG_Refresh(void *context) {
+
+	TimerStart(&IwdgTimer);
+	isIWDGrefresh = 1;
+}
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -227,6 +239,9 @@ int main(void)
 	LORA_Join();
 
 	LoraStartTx(TX_ON_TIMER) ;
+	MX_IWDG_Init();
+	TimerInit(&IwdgTimer, IWDG_Refresh);
+	TimerSetValue(&IwdgTimer,  25 * 1000);
 	while (1)
 	{
 		if (AppProcessRequest == LORA_SET)
@@ -243,6 +258,10 @@ int main(void)
 			LoraMacProcessRequest = LORA_RESET;
 			LoRaMacProcess();
 		}
+		if (isIWDGrefresh == 1)
+		{
+			HAL_IWDG_Refresh(&hiwdg);
+		}
 
 		/*If a flag is set at this point, mcu must not enter low power and must loop*/
 		DISABLE_IRQ();
@@ -252,6 +271,7 @@ int main(void)
 		if ((LoraMacProcessRequest != LORA_SET) && (AppProcessRequest != LORA_SET))
 		{
 #ifndef LOW_POWER_DISABLE
+			IWDG_Refresh(NULL);
 			LPM_EnterLowPower();
 #endif
 		}
@@ -261,6 +281,8 @@ int main(void)
 		if (enterLoop) {
 			InfiniteLoop();
 		}
+
+		HAL_IWDG_Refresh(&hiwdg);
 
 		/* USER CODE BEGIN 2 */
 		/* USER CODE END 2 */
@@ -284,6 +306,8 @@ static void LORA_HasJoined(void)
 
 static void Send( void* context )
 {
+	HAL_IWDG_Refresh(&hiwdg);
+
 	sendStack++;
 	if (enEngineer) PRINTF("\r\n");
 	if ( LORA_JoinStatus () != LORA_SET )
@@ -329,6 +353,8 @@ static void Send( void* context )
 		success = SENSOR_Set_Coefficient(coefficient);
 	}
 
+	HAL_IWDG_Refresh(&hiwdg);
+
 	if (success) {
 		if (enEngineer) PRINTF("SENSOR : Start Measuring\r\n");
 
@@ -347,6 +373,8 @@ static void Send( void* context )
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+	HAL_IWDG_Refresh(&hiwdg);
 
 	if (success) {
 		AppData.Buff[0] = 32;
@@ -606,6 +634,42 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
+
+}
+
+
+/**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI;
+	RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
+		Error_Handler();
+	}
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 4095;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
 
 }
 
