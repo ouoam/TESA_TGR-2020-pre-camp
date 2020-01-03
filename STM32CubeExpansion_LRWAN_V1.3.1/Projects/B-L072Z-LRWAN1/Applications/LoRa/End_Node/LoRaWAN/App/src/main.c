@@ -82,11 +82,7 @@ static uint8_t AppDataBuff[LORAWAN_APP_DATA_BUFF_SIZE];
 #define SENSOR_RESP_TIMEOUT 7
 
 #define SENSOR_COEFF_ADDR 0x08080000
-
-uint32_t HAL_GetTick(void)
-{
-  return TimerGetCurrentTime();
-}
+#define ENGINEER_MODE_ADDR 0x08080080
 
 static void MX_USART1_UART_Init(void);
 int SENSOR_Parse_Resp(void);
@@ -215,6 +211,8 @@ int main(void)
 	vcom_ReceiveInit(RxCpltCallback);
 
 	/* USER CODE BEGIN 1 */
+	enEngineer = readFromEEPROM(ENGINEER_MODE_ADDR);
+	if (enEngineer) PRINTF("\r\n\r\n !! !! ENGINEER MODE IS ENABLE !! !!\r\n\r\n\r\n");
 	/* USER CODE END 1 */
 
 	/*Disbale Stand-by mode*/
@@ -641,9 +639,11 @@ void RxCpltCallback(uint8_t *rxChar) {
 	if (RxBuff[RxBuffI-1] == '\n'||RxBuff[RxBuffI-1] == '\r'||RxBuff[RxBuffI-1] == ' ') {
 		if ( RxBuff[0] == 'E' && RxBuff[1] == 'n' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
 			enEngineer = true;
+			writeToEEPROM(ENGINEER_MODE_ADDR, 1);
 			PRINTF("Engineer mode enable\r\n");
 		} else if ( RxBuff[0] == 'D' && RxBuff[1] == 's' && RxBuff[2] == 'G' && RxBuff[3] == 'n' ) {
 			enEngineer = false;
+			writeToEEPROM(ENGINEER_MODE_ADDR, 0);
 			PRINTF("Engineer mode disable\r\n");
 		}
 		if (enEngineer) {

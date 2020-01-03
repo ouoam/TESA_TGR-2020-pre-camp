@@ -55,6 +55,11 @@ void HAL_Delay(__IO uint32_t Delay)
   HW_RTC_DelayMs(Delay);   /* based on RTC */
 }
 
+uint32_t HAL_GetTick(void)
+{
+  return TimerGetCurrentTime();
+}
+
 /**
   * @brief  Initializes the MSP.
   * @retval None
