@@ -742,13 +742,19 @@ void RxCpltCallback(uint8_t *rxChar) {
 					writeToEEPROM(SENSOR_COEFF_ADDR, coefficient);
 				}
 			} else if ( RxBuff[0] == 'T' ) {
-				Send(NULL);
+				AppProcessRequest = LORA_SET;
 			} else if ( RxBuff[0] == 'M') {
 				if (getSensorValue()) {
 					PRINTF("SENSOR : Success Measuring %u\r\n", pm2_5);
 				} else {
 					PRINTF("SENSOR : ERROR\r\n");
 				}
+			} else if ( RxBuff[0] == '?') {
+				PRINTF("\r\n");
+				PRINTF("G    : Get coefficient\r\n");
+				PRINTF("Sxxx : Set coefficient\r\n");
+				PRINTF("T    : Transmit Lora with sensor value\r\n");
+				PRINTF("M    : Measure PM2.5\r\n");
 			}
 		}
 		RxBuffI = 0;
