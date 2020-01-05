@@ -34,7 +34,7 @@
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                 5 * 60 * 1000         // 4 * 60 * 60 * 1000
+#define APP_TX_DUTYCYCLE                 60 * 60 * 1000         // 4 * 60 * 60 * 1000
 /*!
  * LoRaWAN Adaptive Data Rate
  * @note Please note that when ADR is enabled the end-device should be static
@@ -255,6 +255,7 @@ int main(void)
 	PRINTF("APP_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__APP_VERSION >> 24), (uint8_t)(__APP_VERSION >> 16), (uint8_t)(__APP_VERSION >> 8), (uint8_t)__APP_VERSION);
 	PRINTF("MAC_VERSION= %02X.%02X.%02X.%02X\r\n", (uint8_t)(__LORA_MAC_VERSION >> 24), (uint8_t)(__LORA_MAC_VERSION >> 16), (uint8_t)(__LORA_MAC_VERSION >> 8), (uint8_t)__LORA_MAC_VERSION);
 
+	PRINTF("\r\nSENSOR will send every %dm\r\n\r\n", APP_TX_DUTYCYCLE / 1000 / 60);
 	/* Configure the Lora Stack*/
 	LORA_Init(&LoRaMainCallbacks, &LoRaParamInit);
 
